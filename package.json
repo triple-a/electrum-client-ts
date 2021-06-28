@@ -1,5 +1,5 @@
 {
-  "name": "@keep-network/electrum-client-js",
+  "name": "electrum-client-js",
   "version": "0.1.0",
   "description": "Electrum protocol client for node.js and browser",
   "main": "index.js",
@@ -19,13 +19,13 @@
     "fs": "0.0.1-security",
     "mocha": "^6.2.0"
   },
-  "homepage": "https://github.com/keep-network/electrum-client-js#readme",
+  "homepage": "https://github.com/aguycalled/electrum-client-js#readme",
   "repository": {
     "type": "git",
-    "url": "git://github.com/keep-network/electrum-client-js.git"
+    "url": "git://github.com/aguycalled/electrum-client-js.git"
   },
   "bugs": {
-    "url": "https://github.com/keep-network/electrum-client-js/issues"
+    "url": "https://github.com/aguycalled/electrum-client-js/issues"
   },
   "keywords": [
     "client",
