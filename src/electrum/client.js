@@ -12,6 +12,7 @@ class ElectrumClient extends SocketClient {
     this.persistencePolicy = persistencePolicy
 
     this.timeLastCall = 0
+    this.protocolVersion = electrumProtocolVersion || '1.4';
 
     if (this.status === 0) {
       try {
@@ -146,8 +147,12 @@ class ElectrumClient extends SocketClient {
   blockchain_scripthash_getBalance(scripthash) {
     return this.request('blockchain.scripthash.get_balance', [scripthash])
   }
-  blockchain_scripthash_getHistory(scripthash) {
-    return this.request('blockchain.scripthash.get_history', [scripthash])
+  blockchain_scripthash_getHistory(scripthash, height = 0) {
+    if (this.protocolVersion = '1.5') {
+      return this.request('blockchain.scripthash.get_history', [scripthash])
+    } else {
+      return this.request('blockchain.scripthash.get_history', [scripthash, height, -1])
+    }
   }
   blockchain_scripthash_getMempool(scripthash) {
     return this.request('blockchain.scripthash.get_mempool', [scripthash])
