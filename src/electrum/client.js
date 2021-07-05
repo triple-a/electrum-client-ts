@@ -147,11 +147,11 @@ class ElectrumClient extends SocketClient {
   blockchain_scripthash_getBalance(scripthash) {
     return this.request('blockchain.scripthash.get_balance', [scripthash])
   }
-  blockchain_scripthash_getHistory(scripthash, height = 0) {
+  blockchain_scripthash_getHistory(scripthash, height = 0, to_height = -1) {
     if (this.protocolVersion = '1.5') {
-      return this.request('blockchain.scripthash.get_history', [scripthash])
+      return this.request('blockchain.scripthash.get_history', [scripthash, height, to_height])
     } else {
-      return this.request('blockchain.scripthash.get_history', [scripthash, height, -1])
+      return this.request('blockchain.scripthash.get_history', [scripthash])
     }
   }
   blockchain_scripthash_getMempool(scripthash) {
