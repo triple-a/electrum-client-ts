@@ -187,6 +187,9 @@ class ElectrumClient extends SocketClient {
   blockchain_transaction_get(tx_hash, verbose) {
     return this.request('blockchain.transaction.get', [tx_hash, verbose ? verbose : false])
   }
+  blockchain_transaction_getKeys(tx_hash) {
+    return this.request('blockchain.transaction.get_keys', [tx_hash])
+  }
   blockchain_transaction_getMerkle(tx_hash, height) {
     return this.request('blockchain.transaction.get_merkle', [tx_hash, height])
   }
