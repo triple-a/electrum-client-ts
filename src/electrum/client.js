@@ -190,6 +190,9 @@ class ElectrumClient extends SocketClient {
   blockchain_transaction_getKeys(tx_hash) {
     return this.request('blockchain.transaction.get_keys', [tx_hash])
   }
+  blockchain_staking_getKeys(spending_pkh) {
+    return this.request('blockchain.staking.get_keys', [spending_pkh])
+  }
   blockchain_transaction_getMerkle(tx_hash, height) {
     return this.request('blockchain.transaction.get_merkle', [tx_hash, height])
   }
