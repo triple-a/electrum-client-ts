@@ -166,6 +166,15 @@ class ElectrumClient extends SocketClient {
   blockchain_scripthash_subscribe(scripthash) {
     return this.request('blockchain.scripthash.subscribe', [scripthash])
   }
+  blockchain_stakervote_subscribe(scripthash) {
+    return this.request('blockchain.stakervote.subscribe', [scripthash])
+  }
+  blockchain_consensus_subscribe() {
+    return this.request('blockchain.consensus.subscribe', [])
+  }
+  blockchain_dao_subscribe() {
+    return this.request('blockchain.dao.subscribe', [])
+  }
   blockchain_scripthash_unsubscribe(scripthash) {
     return this.request('blockchain.scripthash.unsubscribe', [scripthash])
   }
