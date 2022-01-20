@@ -1,6 +1,6 @@
 {
   "name": "@aguycalled/electrum-client-js",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Electrum protocol client for node.js and browser",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "lint:fix": "eslint --fix ."
   },
   "dependencies": {
+    "react-native-tcp-socket": "^5.5.0",
     "websocket": "^1.0.29"
   },
   "devDependencies": {
@@ -34,6 +35,9 @@
   ],
   "engines": {
     "node": ">=6"
+  },
+  "react-native": {
+    "net": "react-native-tcp-socket"
   },
   "author": "Yuki Akiyama",
   "license": "MIT"
