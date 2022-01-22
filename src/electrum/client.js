@@ -144,8 +144,8 @@ class ElectrumClient extends SocketClient {
   blockchain_address_getProof(address) {
     return this.request('blockchain.address.get_proof', [address])
   }
-  blockchain_dotnav_resolveName(name) {
-    return this.request('blockchain.dotnav.resolve_name', [name])
+  blockchain_dotnav_resolveName(name, subdomains) {
+    return this.request('blockchain.dotnav.resolve_name', [name, subdomains])
   }
   blockchain_scripthash_getBalance(scripthash) {
     return this.request('blockchain.scripthash.get_balance', [scripthash])
