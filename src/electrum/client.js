@@ -22,7 +22,7 @@ class ElectrumClient extends SocketClient {
         // Negotiate protocol version.
         const version = await this.server_version(clientName || 'electrum-js', electrumProtocolVersion || '1.4')
         console.log(`Negotiated version: [${version}]`)
-        
+
         // Get banner.
         const banner = await this.server_banner()
         console.log(banner)
@@ -166,6 +166,9 @@ class ElectrumClient extends SocketClient {
   blockchain_scripthash_subscribe(scripthash) {
     return this.request('blockchain.scripthash.subscribe', [scripthash])
   }
+  blockchain_outpoint_subscribe(hash, out) {
+    return this.request('blockchain.outpoint.subscribe', [hash, out])
+  }
   blockchain_stakervote_subscribe(scripthash) {
     return this.request('blockchain.stakervote.subscribe', [scripthash])
   }
@@ -177,6 +180,9 @@ class ElectrumClient extends SocketClient {
   }
   blockchain_scripthash_unsubscribe(scripthash) {
     return this.request('blockchain.scripthash.unsubscribe', [scripthash])
+  }
+  blockchain_outpoint_unsubscribe(hash, out) {
+    return this.request('blockchain.outpoint.unsubscribe', [hash, out])
   }
   blockchain_block_header(height, cpHeight = 0) {
     return this.request('blockchain.block.header', [height, cpHeight])
