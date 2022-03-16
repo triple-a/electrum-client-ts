@@ -1,6 +1,6 @@
 {
   "name": "@aguycalled/electrum-client-js",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Electrum protocol client for node.js and browser",
   "main": "index.js",
   "scripts": {

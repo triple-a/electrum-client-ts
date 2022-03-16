@@ -214,6 +214,9 @@ class ElectrumClient extends SocketClient {
   blockchain_token_getToken(id) {
     return this.request('blockchain.token.get_token', [id])
   }
+  blockchain_token_getNft(id, subid, get_utxo) {
+    return this.request('blockchain.token.get_token', [id, subid, get_utxo ? get_utxo : false])
+  }
   blockchain_transaction_getMerkle(tx_hash, height) {
     return this.request('blockchain.transaction.get_merkle', [tx_hash, height])
   }
