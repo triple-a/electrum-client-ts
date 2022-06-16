@@ -25,11 +25,13 @@ class ElectrumClient extends SocketClient {
         const version = await this.server_version(clientName || 'electrum-js', electrumProtocolVersion || '1.4')
         console.log(`Negotiated version: [${version}]`)
 
+        this.onReady()
+
         // Get banner.
         const banner = await this.server_banner()
         console.log(banner)
       } catch (err) {
-        throw new Error(`failed to connect to electrum server: [${err}]`)
+        this.onError(`failed to connect to electrum server: [${err}]`)
       }
 
       this.keepAlive()

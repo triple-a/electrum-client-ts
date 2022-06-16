@@ -82,6 +82,11 @@ class SocketClient {
   }
 
   onConnect() {
+    this.subscribe.emit('socket.connected')
+  }
+
+  onReady() {
+    this.subscribe.emit('ready')
   }
 
   onClose(event) {
@@ -101,7 +106,7 @@ class SocketClient {
   }
 
   onError(error) {
-    this.subscribe.emit('error', `onError: [${error}]`)
+    this.subscribe.emit('socket.error', `onError: [${error}]`)
   }
 }
 

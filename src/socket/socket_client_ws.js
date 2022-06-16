@@ -33,7 +33,7 @@ class WebSocketClient {
 
       client.onclose = (event) => {
         this.self.onClose(event)
-        reject(new Error(`websocket connection closed: code: [${event.code}], reason: [${event.reason}]`))
+        this.self.onError(`websocket connection closed: code: [${event.code}], reason: [${event.reason}]`)
       }
 
       client.onmessage = (message) => {
