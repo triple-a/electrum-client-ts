@@ -113,7 +113,11 @@ class ElectrumClient extends SocketClient {
 
   reconnect() {
     console.log('electrum reconnect');
-    return this.connect(this.clientName, this.protocolVersion, this.persistencePolicy);
+    try {
+      return this.connect(this.clientName, this.protocolVersion, this.persistencePolicy);
+    } catch (e) {
+      console.log('Failed to reconnect: '+e);
+    }
   }
 
   // TODO: Refactor persistency

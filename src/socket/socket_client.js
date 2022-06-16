@@ -87,7 +87,7 @@ class SocketClient {
   onClose(event) {
     this.status = 0
     Object.keys(this.callback_message_queue).forEach((key) => {
-      this.callback_message_queue[key](new Error('close connect'))
+      this.onError('close connect')
       delete this.callback_message_queue[key]
     })
   }
@@ -101,7 +101,7 @@ class SocketClient {
   }
 
   onError(error) {
-    console.log(`onError: [${error}]`)
+    this.subscribe.emit('error', `onError: [${error}]`)
   }
 }
 
