@@ -57,14 +57,6 @@ export class TCPSocketClient extends SocketClient {
   }
 
   async initialize() {
-    await new Promise((resolve) => {
-      this.client.connect(this.port, this.host, () => {
-        this.logger.info('connected');
-        this.emitConnect();
-        resolve(true);
-      });
-    });
-
     this.client.setTimeout(TIMEOUT);
     this.client.setEncoding('utf8');
     this.client.setKeepAlive(true, 0);
@@ -109,6 +101,14 @@ export class TCPSocketClient extends SocketClient {
     this.client.on('error', (e: Error) => {
       this.logger.error(`onError: [${e}]`);
       this.emitError(e);
+    });
+
+    await new Promise((resolve) => {
+      this.client.connect(this.port, this.host, () => {
+        this.logger.info('connected');
+        this.emitConnect();
+        resolve(true);
+      });
     });
 
     this.readyStateTimer = setInterval(() => {

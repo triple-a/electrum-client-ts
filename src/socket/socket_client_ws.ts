@@ -2,6 +2,9 @@ import { w3cwebsocket as W3CWebSocket } from 'websocket';
 import { SocketClient, SocketClientOptions } from './socket_client';
 import { WsProtocol } from './types';
 
+const sleep = (ms: number) =>
+  new Promise((resolve, _) => setTimeout(() => resolve(true), ms));
+
 export class WebSocketClient extends SocketClient {
   private client: W3CWebSocket;
   constructor(
@@ -50,9 +53,18 @@ export class WebSocketClient extends SocketClient {
         this.emitConnect();
       }
     };
+
+    await new Promise((resolve) => {
+      (async () => {
+        while (this.client.readyState !== this.client.OPEN) {
+          await sleep(100);
+        }
+        resolve(true);
+      })();
+    });
   }
 
-  async _close() {
+  _close() {
     this.client.close(1000, 'close connection');
   }
 

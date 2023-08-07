@@ -93,6 +93,7 @@ export abstract class SocketClient {
   }
 
   emitEnd(error?: Error | unknown) {
+    this.connected = false;
     this.subscribe.emit('socket.end', error);
   }
 
