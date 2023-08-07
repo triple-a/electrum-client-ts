@@ -3,7 +3,7 @@
 JavaScript implementation of [Electrum Protocol] Client.
 
 This is a library that can communicate with the [ElectrumX Server]
-on `tcp`, `ssl`, `ws` and `wss` protocols. 
+on `tcp`, `ssl`, `ws` and `wss` protocols.
 
 Works in node.js and browser.
 
@@ -17,45 +17,40 @@ Latest [CircleCI](.circleci/) build status:
 
 [![CircleCI](https://circleci.com/gh/keep-network/electrum-client-js.svg?style=svg)](https://circleci.com/gh/keep-network/electrum-client-js)
 
-
 ## Install
 
 ```
-npm install --save @keep-network/electrum-client-js
+npm install --save git@github.com:triple-a/electrum-client-ts.git#master
 ```
 
 ## Usage
 
 ```js
-const ElectrumClient = require('@keep-network/electrum-client-js')
+const ElectrumClient = require('@keep-network/electrum-client-js');
 
 async function main() {
-  const client = new ElectrumClient(
-    'fortress.qtornado.com',
-    50002,
-    'ssl'
-  )
+  const client = new ElectrumClient('fortress.qtornado.com', 50002, 'ssl');
 
   try {
     await client.connect(
       'electrum-client-js', // optional client name
-      '1.4.2' // optional protocol version
-    )
+      '1.4.2', // optional protocol version
+    );
 
-    const header = await client.blockchain_headers_subscribe()
-    console.log('Current header:', header)
+    const header = await client.blockchain_headers_subscribe();
+    console.log('Current header:', header);
 
-    await client.close()
+    await client.close();
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 }
 
-main()
+main();
 ```
+
 See more [examples](example/).
 
-
-[Electrum Protocol]: https://electrumx.readthedocs.io/en/latest/protocol.html
-[Electrum Protocol methods]: https://electrumx.readthedocs.io/en/latest/protocol-methods.html
-[ElectrumX Server]: https://electrumx.readthedocs.io/en/latest/
+[electrum protocol]: https://electrumx.readthedocs.io/en/latest/protocol.html
+[electrum protocol methods]: https://electrumx.readthedocs.io/en/latest/protocol-methods.html
+[electrumx server]: https://electrumx.readthedocs.io/en/latest/
