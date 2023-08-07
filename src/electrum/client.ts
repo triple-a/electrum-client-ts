@@ -23,6 +23,8 @@ export type ElectrumClientOptions = {
   nextReqId: () => string;
 };
 
+type CallbackMessageQueue<T> = Map<string, util.PromiseResult<T>>;
+
 export class ElectrumClient {
   private timeLastCall: number = 0;
   private clientName: string = '';
@@ -34,7 +36,7 @@ export class ElectrumClient {
   private socketClient: SocketClient;
 
   private _reqId: number = 0;
-  private callbackMessageQueue: Map<string, util.PromiseResult>;
+  private callbackMessageQueue: CallbackMessageQueue<any>;
   private nextReqId: () => string;
   private logger: Logger;
   private reconnectWhenClose: boolean = true;
@@ -163,7 +165,7 @@ export class ElectrumClient {
     }, 1000);
   }
 
-  async request(method: string, params: unknown[]) {
+  async request<T>(method: string, params: unknown[]): Promise<T> {
     if (!this.isConnected()) {
       throw new Error('connection not established');
     }
@@ -179,11 +181,11 @@ export class ElectrumClient {
 
       this.callbackMessageQueue.set(
         msgId,
-        util.createPromiseResult<unknown>(resolve, reject),
+        util.createPromiseResult<T>(resolve, reject) as util.PromiseResult<T>,
       );
 
       this.socketClient.send(content + '\n');
-    });
+    }) as Promise<T>;
 
     return await response;
   }

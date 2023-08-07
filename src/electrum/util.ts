@@ -7,14 +7,14 @@ export function makeRequest(method: string, params?: unknown[], id?: string) {
   });
 }
 
+export type PromiseResult<T> = (err: unknown | null, result: T) => void;
+
 export function createPromiseResult<T>(
-  resolve: (value: T) => T,
+  resolve: (value: T) => void,
   reject: (reason?: unknown) => void,
-) {
+): PromiseResult<T> {
   return (err: unknown | null, result: T) => {
     if (err) reject(err);
     else resolve(result);
   };
 }
-
-export type PromiseResult = ReturnType<typeof createPromiseResult>;
