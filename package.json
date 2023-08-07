@@ -2,15 +2,19 @@
   "name": "@triple-a/electrum-client-ts",
   "version": "0.1.16",
   "description": "Electrum protocol client for node.js and browser",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepare": "npm run build && npm install husky -D && husky install",
     "build": "tsc",
     "pretest": "npm run build",
     "test": "mocha --timeout 10000",
     "lint": "eslint .",
-    "lint:fix": "eslint --fix ."
+    "lint:fix": "eslint --fix src"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "dependencies": {
     "websocket": "^1.0.29"
   },
