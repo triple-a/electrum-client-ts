@@ -1,5 +1,5 @@
 {
-  "name": "@aguycalled/electrum-client-js",
+  "name": "@triple-a/electrum-client-ts",
   "version": "0.1.15",
   "description": "Electrum protocol client for node.js and browser",
   "main": "index.js",
