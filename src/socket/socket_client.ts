@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ISocketClient, Logger } from './types';
+import { Logger } from './types';
 import tls from 'tls';
 
 export { Protocol, Logger } from './types';
@@ -9,7 +9,7 @@ export type SocketClientOptions = {
 } & tls.TLSSocketOptions;
 
 export class DefaultLogger implements Logger {
-  public level: string = 'info';
+  public level: string = process.env.SOCKET_LOG_LEVEL || 'info';
   private levels: { [key: string]: number } = {
     error: 40,
     warn: 20,
@@ -35,7 +35,7 @@ export class DefaultLogger implements Logger {
   }
 }
 
-export abstract class SocketClient implements ISocketClient {
+export abstract class SocketClient {
   protected id: number = 0;
   protected connected: boolean = false;
   protected subscribe: EventEmitter;
@@ -46,26 +46,16 @@ export abstract class SocketClient implements ISocketClient {
     this.logger = options?.logger || new DefaultLogger();
   }
 
-  abstract _doConnect(): Promise<boolean>;
+  abstract initialize(): Promise<void>;
 
-  async connect(): Promise<boolean> {
-    if (this.connected) {
-      return Promise.resolve(true);
-    }
-
-    this.connected = await this._doConnect();
-
-    return this.connected;
-  }
-
-  abstract _doClose(): void;
+  abstract _close(): void;
 
   close(): void {
     if (!this.connected) {
       return;
     }
 
-    this._doClose();
+    this._close();
 
     this.connected = false;
   }
@@ -84,12 +74,13 @@ export abstract class SocketClient implements ISocketClient {
 
   abstract send(data: string | Uint8Array): void;
 
-  emitMessage(body: string) {
-    this.subscribe.emit('socket.message', body);
+  emitConnect() {
+    this.connected = true;
+    this.subscribe.emit('socket.connect');
   }
 
-  emitConnect() {
-    this.subscribe.emit('socket.connect');
+  emitMessage(message: string) {
+    this.subscribe.emit('socket.message', message);
   }
 
   emitReady() {

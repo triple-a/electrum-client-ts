@@ -2,7 +2,7 @@ const servers = {
   tcp: {
     protocol: 'tcp',
     port: '50001',
-    host: 'fortress.qtornado.com',
+    host: 'electrum.bitaroo.net',
   },
   ssl: {
     protocol: 'ssl',

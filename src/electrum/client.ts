@@ -1,3 +1,4 @@
+import EventEmitter from 'events';
 import {
   Protocol,
   SocketClient,
@@ -28,6 +29,7 @@ export class ElectrumClient {
   private protocolVersion: string = '1.4';
   private persistencePolicy?: PersistencePolicy;
   private timeout: NodeJS.Timeout | number = 0;
+  private cache: Map<string, unknown> = new Map();
 
   private socketClient: SocketClient;
 
@@ -35,43 +37,54 @@ export class ElectrumClient {
   private callbackMessageQueue: Map<string, util.PromiseResult>;
   private nextReqId: () => string;
   private logger: Logger;
+  private reconnectWhenClose: boolean = true;
+
+  public subscribe: EventEmitter;
 
   constructor(
-    host: string,
-    port: number,
-    protocol: Protocol,
-    options?: ElectrumClientOptions,
+    private host: string,
+    private port: number,
+    private protocol: Protocol,
+    private options?: ElectrumClientOptions,
   ) {
-    switch (protocol) {
-      case 'tcp':
-      case 'tls':
-      case 'ssl':
-        this.socketClient = new TCPSocketClient(
-          host,
-          port,
-          protocol,
-          options as SocketClientOptions,
-        );
-        break;
-      case 'ws':
-      case 'wss':
-        this.socketClient = new WebSocketClient(
-          host,
-          port,
-          protocol,
-          options as SocketClientOptions,
-        );
-        break;
-      default:
-        throw new Error(`invalid protocol: [${protocol}]`);
-    }
+    this.subscribe = new EventEmitter();
     this.callbackMessageQueue = new Map();
 
     this.nextReqId = options?.nextReqId || (() => String(++this._reqId));
     this.logger = options?.logger || new DefaultLogger();
 
-    this.socketClient.on('socket.message', this.onSocketMessage.bind(this));
-    this.socketClient.on('socket.close', this.onSocketClose.bind(this));
+    this.socketClient = this._createSocketClient();
+  }
+
+  _createSocketClient() {
+    let socketClient;
+    switch (this.protocol) {
+      case 'tcp':
+      case 'tls':
+      case 'ssl':
+        socketClient = new TCPSocketClient(
+          this.host,
+          this.port,
+          this.protocol,
+          this.options as SocketClientOptions,
+        );
+        break;
+      case 'ws':
+      case 'wss':
+        socketClient = new WebSocketClient(
+          this.host,
+          this.port,
+          this.protocol,
+          this.options as SocketClientOptions,
+        );
+        break;
+      default:
+        throw new Error(`invalid protocol: [${this.protocol}]`);
+    }
+
+    socketClient.on('socket.message', this.onSocketMessage.bind(this));
+    socketClient.on('socket.close', this.onSocketClose.bind(this));
+    return socketClient;
   }
 
   isConnected(): boolean {
@@ -92,8 +105,7 @@ export class ElectrumClient {
 
     if (!this.isConnected()) {
       try {
-        // Connect to Electrum Server.
-        await this.socketClient.connect();
+        await this.socketClient.initialize();
 
         // Negotiate protocol version.
         const version = await this.server_version(
@@ -118,10 +130,37 @@ export class ElectrumClient {
   }
 
   onSocketClose() {
+    this.logger.debug('socket.close');
+
+    this.cache.clear();
+
     this.callbackMessageQueue.forEach((_v, key, map) => {
       this.socketClient.emitError('close connection');
       map.delete(key);
     });
+
+    // Stop keep alive.
+    clearInterval(this.timeout);
+
+    if (!this.reconnectWhenClose) {
+      return;
+    }
+    setTimeout(async () => {
+      if (
+        this.persistencePolicy != null &&
+        this.persistencePolicy.maxRetry > 0
+      ) {
+        await this.reconnect();
+        this.persistencePolicy.maxRetry -= 1;
+      } else if (
+        this.persistencePolicy != null &&
+        this.persistencePolicy.callback != null
+      ) {
+        this.persistencePolicy.callback();
+      } else if (this.persistencePolicy == null) {
+        await this.reconnect();
+      }
+    }, 1000);
   }
 
   async request(method: string, params: unknown[]) {
@@ -178,7 +217,7 @@ export class ElectrumClient {
       if (msg.id !== void 0) {
         this.response(msg);
       } else {
-        this.socketClient.emit(msg.method, msg.params);
+        this.subscribe.emit(msg.method, msg.params);
       }
     }
   }
@@ -216,47 +255,18 @@ export class ElectrumClient {
   }
 
   close() {
+    this.reconnectWhenClose = false;
     return this.socketClient.close();
   }
 
-  onClose() {
-    this.socketClient.emitClose();
-
-    // const list = [
-    //   "server.peers.subscribe",
-    //   "blockchain.numblocks.subscribe",
-    //   "blockchain.headers.subscribe",
-    //   "blockchain.address.subscribe",
-    // ];
-
-    // TODO: We should probably leave listeners if the have persistency policy.
-    //list.forEach((event) => this.subscribe.removeAllListeners(event))
-
-    // Stop keep alive.
-    clearInterval(this.timeout);
-
-    setTimeout(() => {
-      if (
-        this.persistencePolicy != null &&
-        this.persistencePolicy.maxRetry > 0
-      ) {
-        this.reconnect();
-        this.persistencePolicy.maxRetry -= 1;
-      } else if (
-        this.persistencePolicy != null &&
-        this.persistencePolicy.callback != null
-      ) {
-        this.persistencePolicy.callback();
-      } else if (this.persistencePolicy == null) {
-        this.reconnect();
-      }
-    }, 1000);
-  }
-
-  reconnect() {
+  async reconnect() {
+    if (!this.reconnectWhenClose) {
+      return;
+    }
     this.logger.info('electrum reconnect');
+    this.socketClient = this._createSocketClient();
     try {
-      return this.connect(
+      return await this.connect(
         this.clientName,
         this.protocolVersion,
         this.persistencePolicy,
@@ -266,21 +276,26 @@ export class ElectrumClient {
     }
   }
 
-  // TODO: Refactor persistency
-  // reconnect() {
-  //   return this.initElectrum(this.electrumConfig);
-  // }
-
   // ElectrumX API
   //
   // Documentation:
   // https://electrumx.readthedocs.io/en/latest/protocol-methods.html
   //
-  server_version(clientName: string, protocolVersion: string) {
-    return this.request('server.version', [clientName, protocolVersion]);
+  async server_version(clientName: string, protocolVersion: string) {
+    if (this.cache.has('server.version')) {
+      return this.cache.get('server.version');
+    }
+    const res = await this.request('server.version', [
+      clientName,
+      protocolVersion,
+    ]);
+    this.cache.set('server.version', res);
+    return res;
   }
-  server_banner() {
-    return this.request('server.banner', []);
+  async server_banner() {
+    const res = await this.request('server.banner', []);
+    console.log(res);
+    return res;
   }
   server_ping() {
     return this.request('server.ping', []);

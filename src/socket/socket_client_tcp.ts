@@ -15,6 +15,7 @@ export type SocketError = Error & {
 export class TCPSocketClient extends SocketClient {
   private client: Socket;
   private mp: MessageParser;
+  private readyStateTimer: NodeJS.Timeout | null = null;
 
   constructor(
     private host: string,
@@ -42,26 +43,12 @@ export class TCPSocketClient extends SocketClient {
     this.mp = new MessageParser((body) => {
       this.emitMessage(body);
     });
-
-    this.initialize();
   }
 
-  async _doConnect(): Promise<boolean> {
-    const client = this.client;
-
-    return new Promise<boolean>((resolve, reject) => {
-      const errorHandler = (e: unknown) => reject(e);
-      client.connect(this.port, this.host, () => {
-        client.removeListener('error', errorHandler);
-        this.logger.info('connected');
-        resolve(true);
-      });
-      client.on('error', errorHandler);
-    });
-  }
-
-  _doClose() {
-    this.client.end();
+  _close() {
+    if (this.readyStateTimer) {
+      clearInterval(this.readyStateTimer);
+    }
     this.client.destroy();
   }
 
@@ -69,47 +56,63 @@ export class TCPSocketClient extends SocketClient {
     this.client.write(data);
   }
 
-  initialize() {
-    const conn = this.client;
+  async initialize() {
+    await new Promise((resolve) => {
+      this.client.connect(this.port, this.host, () => {
+        this.logger.info('connected');
+        this.emitConnect();
+        resolve(true);
+      });
+    });
 
-    conn.setTimeout(TIMEOUT);
-    conn.setEncoding('utf8');
-    conn.setKeepAlive(true, 0);
-    conn.setNoDelay(true);
+    this.client.setTimeout(TIMEOUT);
+    this.client.setEncoding('utf8');
+    this.client.setKeepAlive(true, 0);
+    this.client.setNoDelay(true);
 
-    conn.on('connect', () => {
-      conn.setTimeout(0);
+    // on connect
+    this.client.on('connect', () => {
+      this.client.setTimeout(0);
       this.logger.debug('onConnect');
       this.emitConnect();
     });
 
-    conn.on('close', (_hadError: boolean) => {
-      this.logger.debug('onClose');
+    // on close
+    this.client.on('close', (hadError: boolean) => {
+      this.logger.debug(`onClose: ${hadError}`);
       this.emitClose();
     });
 
-    conn.on('timeout', () => {
+    // on timeout
+    this.client.on('timeout', () => {
       const e = new Error('ETIMEDOUT') as SocketError;
       e.errorno = 'ETIMEDOUT';
       e.code = 'ETIMEDOUT';
       e.connect = false;
-      conn.emit('error', e);
+      this.client.emit('error', e);
     });
 
-    conn.on('data', (chunk) => {
-      conn.setTimeout(0);
+    // on data
+    this.client.on('data', (chunk) => {
+      this.client.setTimeout(0);
       this.logger.debug(`onData: [${chunk}]`);
       this.mp.run(chunk);
     });
 
-    conn.on('end', () => {
-      conn.setTimeout(0);
+    // on end
+    this.client.on('end', () => {
+      this.client.setTimeout(0);
       this.emitEnd();
     });
 
-    conn.on('error', (e: Error) => {
+    // on error
+    this.client.on('error', (e: Error) => {
       this.logger.error(`onError: [${e}]`);
       this.emitError(e);
     });
+
+    this.readyStateTimer = setInterval(() => {
+      this.logger.debug('readyState: ', this.client.readyState);
+    }, 1000);
   }
 }

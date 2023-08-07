@@ -24,35 +24,35 @@ export class WebSocketClient extends SocketClient {
     );
   }
 
-  async _doConnect() {
-    const client = this.client;
+  async initialize() {
+    // on error
+    this.client.onerror = (error) => {
+      this.emitError(error);
+    };
 
-    return new Promise<boolean>((resolve, _reject) => {
-      client.onerror = (error) => {
-        this.emitError(error);
-      };
+    // on close
+    this.client.onclose = (event) => {
+      this.emitClose();
+      this.emitError(
+        `websocket connection closed: code: [${event.code}], reason: [${event.reason}]`,
+      );
+    };
 
-      client.onclose = (event) => {
-        this.emitClose();
-        this.emitError(
-          `websocket connection closed: code: [${event.code}], reason: [${event.reason}]`,
-        );
-      };
+    // on message
+    this.client.onmessage = (message) => {
+      this.emitMessage(message.data.toString('utf-8'));
+    };
 
-      client.onmessage = (message) => {
-        this.emitMessage(message.data.toString('utf-8'));
-      };
-
-      client.onopen = () => {
-        if (client.readyState === client.OPEN) {
-          this.emitConnect();
-          resolve(true);
-        }
-      };
-    });
+    // on connect
+    this.client.onopen = () => {
+      if (this.client.readyState === this.client.OPEN) {
+        this.logger.info('connected');
+        this.emitConnect();
+      }
+    };
   }
 
-  async _doClose() {
+  async _close() {
     this.client.close(1000, 'close connection');
   }
 

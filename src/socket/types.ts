@@ -1,11 +1,3 @@
-export interface ISocketClient {
-  emitError(error: unknown): void;
-  emitClose(event: unknown): void;
-  emitMessage(body: string): void;
-  emitConnect(): void;
-  emitEnd(event: unknown): void;
-}
-
 export interface Logger {
   debug: (...args: any[]) => void;
   info: (...args: any[]) => void;
