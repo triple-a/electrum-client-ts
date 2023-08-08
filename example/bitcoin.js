@@ -14,12 +14,17 @@ const main = async () => {
 
   try {
     const ver = await client.server_version('electrum-client-js', '1.4');
-    console.log('Negotiated version:', ver);
+    console.log('Negotiated version:', ver, typeof ver);
 
     const balance = await client.blockchain_scripthash_getBalance(
       '740485f380ff6379d11ef6fe7d7cdd68aea7f8bd0d953d9fdf3531fb7d531833',
     );
     console.log('Balance:', balance);
+
+    const history = await client.blockchain_scripthash_getHistory(
+      '740485f380ff6379d11ef6fe7d7cdd68aea7f8bd0d953d9fdf3531fb7d531833',
+    );
+    console.log('History:', history);
 
     const unspent = await client.blockchain_scripthash_listunspent(
       '740485f380ff6379d11ef6fe7d7cdd68aea7f8bd0d953d9fdf3531fb7d531833',

@@ -8,7 +8,15 @@ import {
 } from '../socket/socket_client';
 import { TCPSocketClient } from '../socket/socket_client_tcp';
 import { WebSocketClient } from '../socket/socket_client_ws';
-import { JsonRpcResponse } from '../types';
+import {
+  AddressMempool,
+  BalanceOutput,
+  HeadersSubscribeOutput,
+  JsonRpcResponse,
+  ScriptHashStatus,
+  UnspentOutput,
+  VersionOutput,
+} from '../types';
 import { AddressHistory } from '../types';
 import * as util from './util';
 
@@ -284,23 +292,25 @@ export class ElectrumClient {
   // Documentation:
   // https://electrumx.readthedocs.io/en/latest/protocol-methods.html
   //
-  async server_version(clientName: string, protocolVersion: string) {
+  async server_version(
+    clientName: string,
+    protocolVersion: string,
+  ): Promise<VersionOutput> {
     if (this.cache.has('server.version')) {
-      return this.cache.get('server.version');
+      return this.cache.get('server.version') as VersionOutput;
     }
-    const res = await this.request('server.version', [
+    const res = await this.request<VersionOutput>('server.version', [
       clientName,
       protocolVersion,
     ]);
     this.cache.set('server.version', res);
     return res;
   }
-  async server_banner() {
-    const res = await this.request('server.banner', []);
-    console.log(res);
+  async server_banner(): Promise<string> {
+    const res = await this.request<string>('server.banner', []);
     return res;
   }
-  server_ping() {
+  server_ping(): Promise<null> {
     return this.request('server.ping', []);
   }
   server_addPeer(features: Record<string, unknown>) {
@@ -321,16 +331,18 @@ export class ElectrumClient {
   blockchain_dotnav_resolveName(name: string, subdomains: string) {
     return this.request('blockchain.dotnav.resolve_name', [name, subdomains]);
   }
-  blockchain_scripthash_getBalance(scripthash: string) {
-    return this.request('blockchain.scripthash.get_balance', [scripthash]);
+  blockchain_scripthash_getBalance(scripthash: string): Promise<BalanceOutput> {
+    return this.request<BalanceOutput>('blockchain.scripthash.get_balance', [
+      scripthash,
+    ]);
   }
   blockchain_scripthash_getHistory(
     scripthash: string,
     height = 0,
     to_height = -1,
-  ) {
+  ): Promise<AddressHistory> {
     if (this.protocolVersion == '1.5') {
-      return this.request('blockchain.scripthash.get_history', [
+      return this.request<AddressHistory>('blockchain.scripthash.get_history', [
         scripthash,
         height,
         to_height,
@@ -341,14 +353,26 @@ export class ElectrumClient {
       ]);
     }
   }
-  blockchain_scripthash_getMempool(scripthash: string) {
-    return this.request('blockchain.scripthash.get_mempool', [scripthash]);
+  blockchain_scripthash_getMempool(
+    scripthash: string,
+  ): Promise<AddressMempool> {
+    return this.request<AddressMempool>('blockchain.scripthash.get_mempool', [
+      scripthash,
+    ]);
   }
-  blockchain_scripthash_listunspent(scripthash: string) {
-    return this.request('blockchain.scripthash.listunspent', [scripthash]);
+  blockchain_scripthash_listunspent(
+    scripthash: string,
+  ): Promise<UnspentOutput> {
+    return this.request<UnspentOutput>('blockchain.scripthash.listunspent', [
+      scripthash,
+    ]);
   }
-  blockchain_scripthash_subscribe(scripthash: string) {
-    return this.request('blockchain.scripthash.subscribe', [scripthash]);
+  blockchain_scripthash_subscribe(
+    scripthash: string,
+  ): Promise<ScriptHashStatus> {
+    return this.request<ScriptHashStatus>('blockchain.scripthash.subscribe', [
+      scripthash,
+    ]);
   }
   blockchain_outpoint_subscribe(hash: string, out: string) {
     return this.request('blockchain.outpoint.subscribe', [hash, out]);
@@ -381,8 +405,11 @@ export class ElectrumClient {
   blockchainEstimatefee(number: number) {
     return this.request('blockchain.estimatefee', [number]);
   }
-  blockchain_headers_subscribe() {
-    return this.request('blockchain.headers.subscribe', []);
+  blockchain_headers_subscribe(): Promise<HeadersSubscribeOutput> {
+    return this.request<HeadersSubscribeOutput>(
+      'blockchain.headers.subscribe',
+      [],
+    );
   }
   blockchain_relayfee() {
     return this.request('blockchain.relayfee', []);

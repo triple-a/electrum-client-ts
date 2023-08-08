@@ -28,10 +28,41 @@ export interface JsonRpcResponse {
   id: string;
 }
 
-export interface AddressHistoryItem {
-  fee: number;
+export type VersionOutput = [
+  string, // client version
+  string, // protocol version
+];
+
+export type BalanceOutput = {
+  confirmed: number;
+  unconfirmed: number;
+};
+
+export interface ConfirmedTransactionOutput {
   height: number;
   tx_hash: string;
 }
 
-export type AddressHistory = AddressHistoryItem[];
+export interface UnconfirmedTransactionOutput
+  extends ConfirmedTransactionOutput {
+  fee: number;
+}
+
+export type AddressHistory = (
+  | ConfirmedTransactionOutput
+  | UnconfirmedTransactionOutput
+)[];
+
+export type AddressMempool = UnconfirmedTransactionOutput[];
+
+export interface UnspentOutput extends ConfirmedTransactionOutput {
+  tx_pos: number;
+  value: number;
+}
+
+export type ScriptHashStatus = string;
+
+export type HeadersSubscribeOutput = {
+  height: number;
+  hex: string;
+};
