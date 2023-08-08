@@ -1,7 +1,7 @@
 import { Socket } from 'net';
 import tls from 'tls';
 import { SocketClient, SocketClientOptions } from './socket_client';
-import { TCPProtocol } from './types';
+import { TCPProtocol } from '../types';
 import { MessageParser } from './util';
 
 const TIMEOUT = 10000;

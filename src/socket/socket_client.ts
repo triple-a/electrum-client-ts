@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
-import { Logger } from './types';
+import { Logger } from '../types';
 import tls from 'tls';
 
-export { Protocol, Logger } from './types';
+export { Protocol, Logger } from '../types';
 
 export type SocketClientOptions = {
   logger?: Logger;

@@ -27,3 +27,11 @@ export interface JsonRpcResponse {
       };
   id: string;
 }
+
+export interface AddressHistoryItem {
+  fee: number;
+  height: number;
+  tx_hash: string;
+}
+
+export type AddressHistory = AddressHistoryItem[];

@@ -8,7 +8,8 @@ import {
 } from '../socket/socket_client';
 import { TCPSocketClient } from '../socket/socket_client_tcp';
 import { WebSocketClient } from '../socket/socket_client_ws';
-import { JsonRpcResponse } from '../socket/types';
+import { JsonRpcResponse } from '../types';
+import { AddressHistory } from '../types';
 import * as util from './util';
 
 const keepAliveInterval = 120 * 1000; // 2 minutes
@@ -335,7 +336,9 @@ export class ElectrumClient {
         to_height,
       ]);
     } else {
-      return this.request('blockchain.scripthash.get_history', [scripthash]);
+      return this.request<AddressHistory>('blockchain.scripthash.get_history', [
+        scripthash,
+      ]);
     }
   }
   blockchain_scripthash_getMempool(scripthash: string) {
@@ -415,6 +418,7 @@ export class ElectrumClient {
   mempool_getFeeHistogram() {
     return this.request('mempool.get_fee_histogram', []);
   }
+  /*
   // ---------------------------------
   // protocol 1.1 deprecated method
   // ---------------------------------
@@ -445,7 +449,6 @@ export class ElectrumClient {
   blockchain_address_subscribe(address: string) {
     return this.request('blockchain.address.subscribe', [address]);
   }
-  /*
   blockchain_scripthash_getBalanceBatch(scripthash: string) {
     return this.requestBatch("blockchain.scripthash.get_balance", scripthash);
   }
