@@ -66,3 +66,49 @@ export type HeadersSubscribeOutput = {
   height: number;
   hex: string;
 };
+
+export type ScriptSig = {
+  asm: string;
+  hex: string;
+};
+
+export type TransactionInput = {
+  txid: string;
+  vout: number;
+  scriptSig: ScriptSig;
+  sequence: number;
+};
+
+export interface ScriptPubkey extends ScriptSig {
+  reqSigs: number;
+  type: string;
+  addresses: Array<string>;
+}
+
+export type TransactionOutput = {
+  value: number;
+  n: number;
+  scriptPubKey: ScriptPubkey;
+};
+
+export interface TransactionDetail {
+  txid: string;
+  hash: string;
+  version: number;
+  size: number;
+  vsize: number;
+  weight: number;
+  locktime: number;
+  vin: Array<TransactionInput>;
+  vinout: Array<TransactionOutput>;
+  hex: string;
+  blockhash: string;
+  confirmations: number;
+  time: number;
+  blocktime: number;
+}
+
+export type Transaction = (
+  | string
+  | TransactionDetail
+);

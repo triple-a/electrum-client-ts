@@ -16,6 +16,7 @@ import {
   ScriptHashStatus,
   UnspentOutput,
   VersionOutput,
+  Transaction,
 } from '../types';
 import { AddressHistory } from '../types';
 import * as util from './util';
@@ -417,8 +418,11 @@ export class ElectrumClient {
   blockchain_transaction_broadcast(rawtx: string) {
     return this.request('blockchain.transaction.broadcast', [rawtx]);
   }
-  blockchain_transaction_get(tx_hash: string, verbose: boolean) {
-    return this.request('blockchain.transaction.get', [
+  blockchain_transaction_get(
+    tx_hash: string,
+    verbose: boolean,
+  ): Promise<Transaction> {
+    return this.request<Transaction>('blockchain.transaction.get', [
       tx_hash,
       verbose ? verbose : false,
     ]);
