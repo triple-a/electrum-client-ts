@@ -402,7 +402,7 @@ export class ElectrumClient {
       cpHeight,
     ]);
   }
-  blockchainEstimatefee(number: number) {
+  blockchain_estimatefee(number: number) {
     return this.request('blockchain.estimatefee', [number]);
   }
   blockchain_headers_subscribe(): Promise<HeadersSubscribeOutput> {
