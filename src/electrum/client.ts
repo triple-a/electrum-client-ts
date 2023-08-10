@@ -17,7 +17,6 @@ import {
   UnspentOutput,
   VersionOutput,
   Transaction,
-  TransactionDetail,
 } from '../types';
 import { AddressHistory } from '../types';
 import * as util from './util';
@@ -424,12 +423,12 @@ export class ElectrumClient {
     verbose: boolean,
   ): Promise<Transaction<typeof verbose>> {
     if (verbose) {
-      return this.request<TransactionDetail>(
-        'blockchain.transaction.get',
-        [tx_hash, true],
-      );
+      return this.request<Transaction<true>>('blockchain.transaction.get', [
+        tx_hash,
+        true,
+      ]);
     } else {
-      return this.request<string>('blockchain.transaction.get', [
+      return this.request<Transaction<false>>('blockchain.transaction.get', [
         tx_hash,
         false,
       ]);
