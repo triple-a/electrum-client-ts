@@ -108,7 +108,6 @@ export interface TransactionDetail {
   blocktime: number;
 }
 
-export type Transaction = (
-  | TransactionDetail
-  | string
-);
+export type Transaction<T extends TransactionDetail | string> = T extends string
+  ? string
+  : TransactionDetail;
