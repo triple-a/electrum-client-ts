@@ -403,8 +403,8 @@ export class ElectrumClient {
       cpHeight,
     ]);
   }
-  blockchainEstimatefee(number: number) {
-    return this.request('blockchain.estimatefee', [number]);
+  blockchain_estimatefee(number: number): Promise<number> {
+    return this.request<number>('blockchain.estimatefee', [number]);
   }
   blockchain_headers_subscribe(): Promise<HeadersSubscribeOutput> {
     return this.request<HeadersSubscribeOutput>(
@@ -412,11 +412,11 @@ export class ElectrumClient {
       [],
     );
   }
-  blockchain_relayfee() {
-    return this.request('blockchain.relayfee', []);
+  blockchain_relayfee(): Promise<number> {
+    return this.request<number>('blockchain.relayfee', []);
   }
-  blockchain_transaction_broadcast(rawtx: string) {
-    return this.request('blockchain.transaction.broadcast', [rawtx]);
+  blockchain_transaction_broadcast(rawtx: string): Promise<string> {
+    return this.request<string>('blockchain.transaction.broadcast', [rawtx]);
   }
   blockchain_transaction_get(
     tx_hash: string,
