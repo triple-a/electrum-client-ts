@@ -424,12 +424,12 @@ export class ElectrumClient {
     verbose: boolean,
   ): Promise<Transaction<typeof verbose>> {
     if (verbose) {
-      return this.request<Transaction<TransactionDetail>>(
+      return this.request<TransactionDetail>(
         'blockchain.transaction.get',
         [tx_hash, true],
       );
     } else {
-      return this.request<Transaction<string>>('blockchain.transaction.get', [
+      return this.request<string>('blockchain.transaction.get', [
         tx_hash,
         false,
       ]);
