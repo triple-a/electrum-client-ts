@@ -100,7 +100,7 @@ export interface TransactionDetail {
   weight: number;
   locktime: number;
   vin: Array<TransactionInput>;
-  vinout: Array<TransactionOutput>;
+  vout: Array<TransactionOutput>;
   hex: string;
   blockhash: string;
   confirmations: number;
