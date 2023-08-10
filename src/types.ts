@@ -109,6 +109,6 @@ export interface TransactionDetail {
 }
 
 export type Transaction = (
-  | string
   | TransactionDetail
+  | string
 );
