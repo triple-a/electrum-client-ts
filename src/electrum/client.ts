@@ -422,11 +422,18 @@ export class ElectrumClient {
   blockchain_transaction_get(
     tx_hash: string,
     verbose: boolean,
-  ): Promise<Transaction<TransactionDetail | string>> {
-    return this.request<Transaction<TransactionDetail | string>>('blockchain.transaction.get', [
-      tx_hash,
-      verbose ? verbose : false,
-    ]);
+  ): Promise<Transaction<typeof verbose>> {
+    if (verbose) {
+      return this.request<Transaction<TransactionDetail>>(
+        'blockchain.transaction.get',
+        [tx_hash, true],
+      );
+    } else {
+      return this.request<Transaction<string>>('blockchain.transaction.get', [
+        tx_hash,
+        false,
+      ]);
+    }
   }
   blockchain_transaction_getKeys(tx_hash: string) {
     return this.request('blockchain.transaction.get_keys', [tx_hash]);
