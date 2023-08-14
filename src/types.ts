@@ -108,6 +108,7 @@ export interface TransactionDetail {
   blocktime: number;
 }
 
-export type Transaction<T> = T extends true
+export type Transaction<T extends boolean> = T extends true
   ? TransactionDetail
   : string;
+

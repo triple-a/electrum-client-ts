@@ -17,6 +17,7 @@ import {
   UnspentOutput,
   VersionOutput,
   Transaction,
+  TransactionDetail,
 } from '../types';
 import { AddressHistory } from '../types';
 import * as util from './util';
@@ -104,14 +105,14 @@ export class ElectrumClient {
   }
 
   async connect(
-    clientName: string,
-    electrumProtocolVersion: string,
+    clientName?: string,
+    electrumProtocolVersion?: string,
     persistencePolicy?: PersistencePolicy,
   ) {
     this.persistencePolicy = persistencePolicy;
 
     this.timeLastCall = 0;
-    this.clientName = clientName;
+    this.clientName = clientName || 'electrum-client-js';
     this.protocolVersion = electrumProtocolVersion || '1.4';
     this.persistencePolicy = persistencePolicy;
 
@@ -418,20 +419,14 @@ export class ElectrumClient {
   blockchain_transaction_broadcast(rawtx: string): Promise<string> {
     return this.request<string>('blockchain.transaction.broadcast', [rawtx]);
   }
-  blockchain_transaction_get(
+  blockchain_transaction_get<B extends boolean>(
     tx_hash: string,
-    verbose: boolean,
-  ): Promise<Transaction<typeof verbose>> {
+    verbose: B,
+  ): Promise<Transaction<B>> {
     if (verbose) {
-      return this.request<Transaction<true>>('blockchain.transaction.get', [
-        tx_hash,
-        true,
-      ]);
+      return this.request('blockchain.transaction.get', [tx_hash, true]);
     } else {
-      return this.request<Transaction<false>>('blockchain.transaction.get', [
-        tx_hash,
-        false,
-      ]);
+      return this.request('blockchain.transaction.get', [tx_hash, false]);
     }
   }
   blockchain_transaction_getKeys(tx_hash: string) {
