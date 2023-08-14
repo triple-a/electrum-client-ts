@@ -17,7 +17,6 @@ import {
   UnspentOutput,
   VersionOutput,
   Transaction,
-  TransactionDetail,
 } from '../types';
 import { AddressHistory } from '../types';
 import * as util from './util';
