@@ -82,7 +82,9 @@ export type TransactionInput = {
 export interface ScriptPubkey extends ScriptSig {
   reqSigs: number;
   type: string;
-  addresses: Array<string>;
+  addresses?: Array<string>;
+  address?: string;
+  desc?: string;
 }
 
 export type TransactionOutput = {
@@ -111,4 +113,3 @@ export interface TransactionDetail {
 export type Transaction<T extends boolean> = T extends true
   ? TransactionDetail
   : string;
-

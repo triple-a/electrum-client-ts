@@ -14,7 +14,7 @@ async function main() {
       '2fdee6050a8713d70ffc823771e14d2cbc75f4902282f167f5ee1cf3f3962d3a',
       true,
     );
-    console.log('Tx: ', tx);
+    console.log('Tx: %j', tx);
 
     await client.close();
   } catch (err) {
