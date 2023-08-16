@@ -33,6 +33,10 @@ export type VersionOutput = [
   string, // protocol version
 ];
 
+export type PeersSubscribeResult = Array<
+  [string, string, [string, string, string, string]]
+>;
+
 export type BalanceOutput = {
   confirmed: number;
   unconfirmed: number;
@@ -48,12 +52,19 @@ export interface UnconfirmedTransactionOutput
   fee: number;
 }
 
-export type AddressHistory = (
+export type ScriptHashHistoryElement =
   | ConfirmedTransactionOutput
-  | UnconfirmedTransactionOutput
-)[];
+  | UnconfirmedTransactionOutput;
 
-export type AddressMempool = UnconfirmedTransactionOutput[];
+export type ScriptHashHistory = Array<ScriptHashHistoryElement>;
+
+export type ScriptHashDetailedHistoryElement = Transaction<true> & {
+  height: number;
+};
+
+export type ScriptHashDetailedHistory = Array<ScriptHashDetailedHistoryElement>;
+
+export type ScriptHashMempool = UnconfirmedTransactionOutput[];
 
 export interface UnspentOutput extends ConfirmedTransactionOutput {
   tx_pos: number;
@@ -72,11 +83,26 @@ export type ScriptSig = {
   hex: string;
 };
 
+export interface BlockHeader {
+  branch: string[];
+  header: string;
+  root: string;
+}
+
+export interface BlockHeaders {
+  count: number;
+  hex: string;
+  max: number;
+  // root?: string;
+  // branch?: string;
+}
+
 export type TransactionInput = {
   txid: string;
   vout: number;
   scriptSig: ScriptSig;
   sequence: number;
+  prevout?: TransactionOutput;
 };
 
 export interface ScriptPubkey extends ScriptSig {
@@ -113,3 +139,11 @@ export interface TransactionDetail {
 export type Transaction<T extends boolean> = T extends true
   ? TransactionDetail
   : string;
+
+export interface MerkleOutput {
+  block_height: number;
+  merkle: string[];
+  pos: number;
+}
+
+export type FeeHistogram = Array<[number, number]>;

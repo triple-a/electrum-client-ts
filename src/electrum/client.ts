@@ -9,7 +9,7 @@ import {
 import { TCPSocketClient } from '../socket/socket_client_tcp';
 import { WebSocketClient } from '../socket/socket_client_ws';
 import {
-  AddressMempool,
+  ScriptHashMempool,
   BalanceOutput,
   HeadersSubscribeOutput,
   JsonRpcResponse,
@@ -17,8 +17,15 @@ import {
   UnspentOutput,
   VersionOutput,
   Transaction,
+  FeeHistogram,
+  MerkleOutput,
+  BlockHeaders,
+  BlockHeader,
+  PeersSubscribeResult,
+  ScriptHashDetailedHistory,
+  TransactionOutput,
 } from '../types';
-import { AddressHistory } from '../types';
+import { ScriptHashHistory } from '../types';
 import * as util from './util';
 
 const keepAliveInterval = 120 * 1000; // 2 minutes
@@ -29,8 +36,10 @@ export interface PersistencePolicy {
 }
 
 export type ElectrumClientOptions = {
-  logger: Logger;
-  nextReqId: () => string;
+  logLevel?: 'debug' | 'info' | 'warn' | 'error' | 'none';
+  logger?: Logger;
+  nextMsgId?: () => string;
+  showBanner?: boolean;
 };
 
 type CallbackMessageQueue<T> = Map<string, util.PromiseResult<T>>;
@@ -62,8 +71,18 @@ export class ElectrumClient {
     this.subscribe = new EventEmitter();
     this.callbackMessageQueue = new Map();
 
-    this.nextReqId = options?.nextReqId || (() => String(++this._reqId));
-    this.logger = options?.logger || new DefaultLogger();
+    const logLevel = options?.logLevel || 'info';
+
+    this.nextReqId = options?.nextMsgId || (() => String(++this._reqId));
+    this.logger = options?.logger || new DefaultLogger(logLevel);
+
+    this.options = {
+      ...options,
+      logger: this.logger,
+      showBanner: options?.showBanner ?? true,
+      logLevel,
+      nextMsgId: this.nextReqId,
+    };
 
     this.socketClient = this._createSocketClient();
   }
@@ -130,7 +149,9 @@ export class ElectrumClient {
 
         // Get banner.
         const banner = await this.server_banner();
-        this.logger.info(banner);
+        if (this.options?.showBanner) {
+          this.logger.info(banner);
+        }
       } catch (err) {
         this.socketClient.emitError(
           `failed to connect to electrum server: [${err}]`,
@@ -288,6 +309,39 @@ export class ElectrumClient {
     }
   }
 
+  async getTransactionOutput(
+    txHash: string,
+    index: number,
+  ): Promise<TransactionOutput> {
+    const tx = await this.blockchain_transaction_get(txHash, true);
+    return tx.vout[index];
+  }
+
+  async getScriptHashDetailedHistory(
+    scriptHash: string,
+  ): Promise<ScriptHashDetailedHistory> {
+    const detailedHistory: ScriptHashDetailedHistory = [];
+    const history = await this.blockchain_scripthash_getHistory(scriptHash);
+    for (const item of history) {
+      const tx = await this.blockchain_transaction_get(item.tx_hash, true);
+      for (const input of tx.vin) {
+        if (input.txid) {
+          const previousOutput = await this.getTransactionOutput(
+            input.txid,
+            input.vout,
+          );
+          input.prevout = previousOutput;
+        }
+      }
+      detailedHistory.push({
+        height: item.height,
+        ...tx,
+      });
+    }
+
+    return detailedHistory;
+  }
+
   // ElectrumX API
   //
   // Documentation:
@@ -312,7 +366,7 @@ export class ElectrumClient {
     return res;
   }
   server_ping(): Promise<null> {
-    return this.request('server.ping', []);
+    return this.request<null>('server.ping', []);
   }
   server_addPeer(features: Record<string, unknown>) {
     return this.request('server.add_peer', [features]);
@@ -324,7 +378,7 @@ export class ElectrumClient {
     return this.request('server.features', []);
   }
   server_peers_subscribe() {
-    return this.request('server.peers.subscribe', []);
+    return this.request<PeersSubscribeResult>('server.peers.subscribe', []);
   }
   blockchain_address_getProof(address: string) {
     return this.request('blockchain.address.get_proof', [address]);
@@ -341,25 +395,26 @@ export class ElectrumClient {
     scripthash: string,
     height = 0,
     to_height = -1,
-  ): Promise<AddressHistory> {
+  ): Promise<ScriptHashHistory> {
     if (this.protocolVersion == '1.5') {
-      return this.request<AddressHistory>('blockchain.scripthash.get_history', [
-        scripthash,
-        height,
-        to_height,
-      ]);
+      return this.request<ScriptHashHistory>(
+        'blockchain.scripthash.get_history',
+        [scripthash, height, to_height],
+      );
     } else {
-      return this.request<AddressHistory>('blockchain.scripthash.get_history', [
-        scripthash,
-      ]);
+      return this.request<ScriptHashHistory>(
+        'blockchain.scripthash.get_history',
+        [scripthash],
+      );
     }
   }
   blockchain_scripthash_getMempool(
     scripthash: string,
-  ): Promise<AddressMempool> {
-    return this.request<AddressMempool>('blockchain.scripthash.get_mempool', [
-      scripthash,
-    ]);
+  ): Promise<ScriptHashMempool> {
+    return this.request<ScriptHashMempool>(
+      'blockchain.scripthash.get_mempool',
+      [scripthash],
+    );
   }
   blockchain_scripthash_listunspent(
     scripthash: string,
@@ -388,16 +443,21 @@ export class ElectrumClient {
     return this.request('blockchain.dao.subscribe', []);
   }
   blockchain_scripthash_unsubscribe(scripthash: string) {
-    return this.request('blockchain.scripthash.unsubscribe', [scripthash]);
+    return this.request<boolean>('blockchain.scripthash.unsubscribe', [
+      scripthash,
+    ]);
   }
   blockchain_outpoint_unsubscribe(hash: string, out: string) {
     return this.request('blockchain.outpoint.unsubscribe', [hash, out]);
   }
   blockchain_block_header(height: number, cpHeight = 0) {
-    return this.request('blockchain.block.header', [height, cpHeight]);
+    return this.request<BlockHeader>('blockchain.block.header', [
+      height,
+      cpHeight,
+    ]);
   }
   blockchain_block_headers(startHeight: number, count: number, cpHeight = 0) {
-    return this.request('blockchain.block.headers', [
+    return this.request<BlockHeaders>('blockchain.block.headers', [
       startHeight,
       count,
       cpHeight,
@@ -418,15 +478,20 @@ export class ElectrumClient {
   blockchain_transaction_broadcast(rawtx: string): Promise<string> {
     return this.request<string>('blockchain.transaction.broadcast', [rawtx]);
   }
-  blockchain_transaction_get<B extends boolean>(
+  async blockchain_transaction_get<B extends boolean>(
     tx_hash: string,
     verbose: B,
   ): Promise<Transaction<B>> {
-    if (verbose) {
-      return this.request('blockchain.transaction.get', [tx_hash, true]);
-    } else {
-      return this.request('blockchain.transaction.get', [tx_hash, false]);
+    const key = `blockchain.transaction.get(${tx_hash},${verbose})`;
+    if (!this.cache.has(key)) {
+      const tx = await this.request('blockchain.transaction.get', [
+        tx_hash,
+        verbose,
+      ]);
+      this.cache.set(key, tx);
     }
+
+    return this.cache.get(key) as Transaction<B>;
   }
   blockchain_transaction_getKeys(tx_hash: string) {
     return this.request('blockchain.transaction.get_keys', [tx_hash]);
@@ -445,10 +510,13 @@ export class ElectrumClient {
     ]);
   }
   blockchain_transaction_getMerkle(tx_hash: string, height: number) {
-    return this.request('blockchain.transaction.get_merkle', [tx_hash, height]);
+    return this.request<MerkleOutput>('blockchain.transaction.get_merkle', [
+      tx_hash,
+      height,
+    ]);
   }
   mempool_getFeeHistogram() {
-    return this.request('mempool.get_fee_histogram', []);
+    return this.request<FeeHistogram>('mempool.get_fee_histogram', []);
   }
   /*
   // ---------------------------------

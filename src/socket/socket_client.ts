@@ -5,17 +5,24 @@ import tls from 'tls';
 export { Protocol, Logger } from '../types';
 
 export type SocketClientOptions = {
+  logLevel?: 'debug' | 'info' | 'warn' | 'error' | 'none';
   logger?: Logger;
 } & tls.TLSSocketOptions;
 
 export class DefaultLogger implements Logger {
   public level: string = process.env.SOCKET_LOG_LEVEL || 'info';
   private levels: { [key: string]: number } = {
+    none: 100,
     error: 40,
     warn: 20,
     info: 10,
     debug: 0,
   };
+  constructor(level?: 'debug' | 'info' | 'warn' | 'error' | 'none') {
+    if (level) {
+      this.level = level;
+    }
+  }
   _log(level: string, ...args: any[]) {
     if (this.levels[level] >= this.levels[this.level]) {
       console.log(`${new Date().toISOString()} [${level}]`, ...args);
@@ -43,7 +50,7 @@ export abstract class SocketClient {
 
   constructor(protected options?: SocketClientOptions) {
     this.subscribe = new EventEmitter();
-    this.logger = options?.logger || new DefaultLogger();
+    this.logger = options?.logger || new DefaultLogger(options?.logLevel);
   }
 
   abstract initialize(): Promise<void>;

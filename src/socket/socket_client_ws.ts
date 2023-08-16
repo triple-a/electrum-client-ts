@@ -13,7 +13,7 @@ export class WebSocketClient extends SocketClient {
     private protocol: WsProtocol,
     options?: SocketClientOptions,
   ) {
-    super();
+    super(options);
     const url = `${this.protocol}://${this.host}:${this.port}`;
 
     // TODO: Add docs
