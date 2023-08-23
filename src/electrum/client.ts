@@ -40,6 +40,9 @@ export type ElectrumClientOptions = {
   logger?: Logger;
   nextMsgId?: () => string;
   showBanner?: boolean;
+  callBanner?: boolean;
+  clientName?: string;
+  protocolVersion?: string;
 };
 
 type CallbackMessageQueue<T> = Map<string, util.PromiseResult<T>>;
@@ -84,10 +87,17 @@ export class ElectrumClient {
       nextMsgId: this.nextReqId,
     };
 
+    if (this.options.clientName) {
+      this.clientName = this.options.clientName;
+    }
+    if (this.options.protocolVersion) {
+      this.protocolVersion = this.options.protocolVersion;
+    }
+
     this.socketClient = this._createSocketClient();
   }
 
-  _createSocketClient() {
+  private _createSocketClient() {
     let socketClient;
     switch (this.protocol) {
       case 'tcp':
@@ -122,16 +132,10 @@ export class ElectrumClient {
     return this.socketClient.isConnected();
   }
 
-  async connect(
-    clientName?: string,
-    protocolVersion?: string,
-    persistencePolicy?: PersistencePolicy,
-  ) {
+  async connect(persistencePolicy?: PersistencePolicy) {
     this.persistencePolicy = persistencePolicy;
 
     this.timeLastCall = 0;
-    if (clientName) this.clientName = clientName;
-    if (protocolVersion) this.protocolVersion = protocolVersion;
     this.persistencePolicy = persistencePolicy;
 
     if (!this.isConnected()) {
@@ -148,9 +152,12 @@ export class ElectrumClient {
         // this.onReady();
 
         // Get banner.
-        const banner = await this.server_banner();
-        if (this.options?.showBanner) {
-          this.logger.info(banner);
+        if (this.options?.callBanner) {
+          const banner = await this.server_banner();
+
+          if (this.options?.showBanner) {
+            this.logger.info(banner);
+          }
         }
       } catch (err) {
         this.socketClient.emitError(
@@ -299,11 +306,7 @@ export class ElectrumClient {
     this.logger.info('electrum reconnect');
     this.socketClient = this._createSocketClient();
     try {
-      return await this.connect(
-        this.clientName,
-        this.protocolVersion,
-        this.persistencePolicy,
-      );
+      return await this.connect(this.persistencePolicy);
     } catch (e) {
       this.logger.error('Failed to reconnect: ' + e);
     }
@@ -480,7 +483,7 @@ export class ElectrumClient {
   }
   async blockchain_transaction_get<B extends boolean>(
     tx_hash: string,
-    verbose: B,
+    verbose: B = false as B,
   ): Promise<Transaction<B>> {
     const key = `blockchain.transaction.get(${tx_hash},${verbose})`;
     if (!this.cache.has(key)) {

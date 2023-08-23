@@ -5,10 +5,7 @@ async function main() {
 
   try {
     console.log('connecting...');
-    await client.connect(
-      'electrum-client-js', // optional client name
-      '1.4.2', // optional protocol version
-    );
+    await client.connect();
 
     const header = await client.blockchain_headers_subscribe();
     console.log('Current header:', header);

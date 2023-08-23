@@ -19,22 +19,19 @@ describe('ElectrumClient', async () => {
       let client;
 
       before(async () => {
-        client = new ElectrumClient(
-          server.host,
-          server.port,
-          server.protocol,
-          server.options,
-        );
+        client = new ElectrumClient(server.host, server.port, server.protocol, {
+          clientName: 'test_client' + server.protocol,
+          protocolVersion: '1.4.2',
+          ...server.options,
+        });
 
-        await client
-          .connect('test_client' + server.protocol, '1.4.2')
-          .catch((err) => {
-            console.error(
-              `failed to connect with config [${JSON.stringify(
-                server,
-              )}]: [${err}]`,
-            );
-          });
+        await client.connect().catch((err) => {
+          console.error(
+            `failed to connect with config [${JSON.stringify(
+              server,
+            )}]: [${err}]`,
+          );
+        });
       });
 
       after(() => {
