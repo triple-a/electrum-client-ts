@@ -46,8 +46,8 @@ type CallbackMessageQueue<T> = Map<string, util.PromiseResult<T>>;
 
 export class ElectrumClient {
   private timeLastCall: number = 0;
-  private clientName: string = '';
-  private protocolVersion: string = '1.4';
+  private clientName: string = 'electrum-client-js';
+  private protocolVersion: string = '1.4.2';
   private persistencePolicy?: PersistencePolicy;
   private timeout: NodeJS.Timeout | number = 0;
   private cache: Map<string, unknown> = new Map();
@@ -79,7 +79,7 @@ export class ElectrumClient {
     this.options = {
       ...options,
       logger: this.logger,
-      showBanner: options?.showBanner ?? true,
+      showBanner: options?.showBanner ?? false,
       logLevel,
       nextMsgId: this.nextReqId,
     };
@@ -124,14 +124,14 @@ export class ElectrumClient {
 
   async connect(
     clientName?: string,
-    electrumProtocolVersion?: string,
+    protocolVersion?: string,
     persistencePolicy?: PersistencePolicy,
   ) {
     this.persistencePolicy = persistencePolicy;
 
     this.timeLastCall = 0;
-    this.clientName = clientName || 'electrum-client-js';
-    this.protocolVersion = electrumProtocolVersion || '1.4';
+    if (clientName) this.clientName = clientName;
+    if (protocolVersion) this.protocolVersion = protocolVersion;
     this.persistencePolicy = persistencePolicy;
 
     if (!this.isConnected()) {
@@ -140,8 +140,8 @@ export class ElectrumClient {
 
         // Negotiate protocol version.
         const version = await this.server_version(
-          clientName || 'electrum-js',
-          electrumProtocolVersion || '1.4',
+          this.clientName,
+          this.protocolVersion,
         );
         this.logger.info(`Negotiated version: [${version}]`);
 
@@ -203,12 +203,12 @@ export class ElectrumClient {
 
     this.timeLastCall = new Date().getTime();
 
-    this.logger.debug(`request: [${method}]`);
-
     const response = new Promise((resolve, reject) => {
       const msgId = this.nextReqId();
 
       const content = util.makeRequest(method, params, msgId);
+
+      this.logger.debug(`request: [${content}]`);
 
       this.callbackMessageQueue.set(
         msgId,

@@ -87,7 +87,6 @@ export class TCPSocketClient extends SocketClient {
     // on data
     this.client.on('data', (chunk) => {
       this.client.setTimeout(0);
-      this.logger.debug(`onData: [${chunk}]`);
       this.mp.run(chunk);
     });
 
