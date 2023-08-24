@@ -60,6 +60,7 @@ export type ScriptHashHistory = Array<ScriptHashHistoryElement>;
 
 export type ScriptHashDetailedHistoryElement = Transaction<true> & {
   height: number;
+  direction?: 'outgoing' | 'incoming';
 };
 
 export type ScriptHashDetailedHistory = Array<ScriptHashDetailedHistoryElement>;

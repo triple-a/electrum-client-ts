@@ -322,6 +322,7 @@ export class ElectrumClient {
 
   async getScriptHashDetailedHistory(
     scriptHash: string,
+    address?: string,
   ): Promise<ScriptHashDetailedHistory> {
     const detailedHistory: ScriptHashDetailedHistory = [];
     const history = await this.blockchain_scripthash_getHistory(scriptHash);
