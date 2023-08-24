@@ -325,22 +325,26 @@ export class ElectrumClient {
   ): Promise<ScriptHashDetailedHistory> {
     const detailedHistory: ScriptHashDetailedHistory = [];
     const history = await this.blockchain_scripthash_getHistory(scriptHash);
-    for (const item of history) {
-      const tx = await this.blockchain_transaction_get(item.tx_hash, true);
-      for (const input of tx.vin) {
-        if (input.txid) {
-          const previousOutput = await this.getTransactionOutput(
-            input.txid,
-            input.vout,
-          );
-          input.prevout = previousOutput;
-        }
-      }
-      detailedHistory.push({
-        height: item.height,
-        ...tx,
-      });
-    }
+    await Promise.allSettled(
+      history.map(async (item) => {
+        const tx = await this.blockchain_transaction_get(item.tx_hash, true);
+        await Promise.allSettled(
+          tx.vin.map(async (input) => {
+            if (input.txid) {
+              const previousOutput = await this.getTransactionOutput(
+                input.txid,
+                input.vout,
+              );
+              input.prevout = previousOutput;
+            }
+          }),
+        );
+        detailedHistory.push({
+          height: item.height,
+          ...tx,
+        });
+      }),
+    );
 
     return detailedHistory;
   }
