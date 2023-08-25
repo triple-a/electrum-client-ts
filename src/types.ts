@@ -60,6 +60,7 @@ export type ScriptHashHistory = Array<ScriptHashHistoryElement>;
 
 export type ScriptHashDetailedHistoryElement = Transaction<true> & {
   height: number;
+  incoming?: boolean;
 };
 
 export type ScriptHashDetailedHistory = Array<ScriptHashDetailedHistoryElement>;
@@ -103,6 +104,7 @@ export type TransactionInput = {
   scriptSig: ScriptSig;
   sequence: number;
   prevout?: TransactionOutput;
+  txinwitness?: string[];
 };
 
 export interface ScriptPubkey extends ScriptSig {

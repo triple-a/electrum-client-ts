@@ -322,12 +322,14 @@ export class ElectrumClient {
 
   async getScriptHashDetailedHistory(
     scriptHash: string,
+    address?: string,
   ): Promise<ScriptHashDetailedHistory> {
     const detailedHistory: ScriptHashDetailedHistory = [];
     const history = await this.blockchain_scripthash_getHistory(scriptHash);
     await Promise.allSettled(
       history.map(async (item) => {
         const tx = await this.blockchain_transaction_get(item.tx_hash, true);
+        let isIncoming = true;
         await Promise.allSettled(
           tx.vin.map(async (input) => {
             if (input.txid) {
@@ -336,11 +338,19 @@ export class ElectrumClient {
                 input.vout,
               );
               input.prevout = previousOutput;
+              const outputAddress = previousOutput.scriptPubKey.addresses || [
+                previousOutput.scriptPubKey.address,
+              ];
+              // find address in previous output
+              if (outputAddress.includes(address)) {
+                isIncoming = false;
+              }
             }
           }),
         );
         detailedHistory.push({
           height: item.height,
+          incoming: isIncoming,
           ...tx,
         });
       }),
