@@ -350,7 +350,7 @@ export class ElectrumClient {
         );
         detailedHistory.push({
           height: item.height,
-          incoming: isIncoming,
+          direction: isIncoming ? 'incoming' : 'outgoing',
           ...tx,
         });
       }),
