@@ -24,6 +24,7 @@ import {
   PeersSubscribeResult,
   ScriptHashDetailedHistory,
   TransactionOutput,
+  TransactionDetail,
 } from '../types';
 import { ScriptHashHistory } from '../types';
 import * as util from './util';
@@ -318,6 +319,24 @@ export class ElectrumClient {
   ): Promise<TransactionOutput> {
     const tx = await this.blockchain_transaction_get(txHash, true);
     return tx.vout[index];
+  }
+
+  async getDetailedTransaction(txHash: string): Promise<TransactionDetail> {
+    const tx = await this.blockchain_transaction_get(txHash, true);
+
+    await Promise.allSettled(
+      tx.vin.map(async (input) => {
+        if (input.txid) {
+          const previousOutput = await this.getTransactionOutput(
+            input.txid,
+            input.vout,
+          );
+          input.prevout = previousOutput;
+        }
+      }),
+    );
+
+    return tx;
   }
 
   async getScriptHashDetailedHistory(
