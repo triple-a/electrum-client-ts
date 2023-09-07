@@ -347,26 +347,18 @@ export class ElectrumClient {
     const history = await this.blockchain_scripthash_getHistory(scriptHash);
     await Promise.allSettled(
       history.map(async (item) => {
-        const tx = await this.blockchain_transaction_get(item.tx_hash, true);
-        let isIncoming = true;
-        await Promise.allSettled(
-          tx.vin.map(async (input) => {
-            if (input.txid) {
-              const previousOutput = await this.getTransactionOutput(
-                input.txid,
-                input.vout,
-              );
-              input.prevout = previousOutput;
-              const outputAddress = previousOutput.scriptPubKey.addresses || [
-                previousOutput.scriptPubKey.address,
-              ];
-              // find address in previous output
-              if (outputAddress.includes(address)) {
-                isIncoming = false;
-              }
-            }
-          }),
-        );
+        const tx = await this.getDetailedTransaction(item.tx_hash);
+        const isIncoming = tx.vout.some((output) => {
+          const outputAddress = output.scriptPubKey.addresses || [
+            output.scriptPubKey.address,
+          ];
+          // find address in output
+          if (address && outputAddress.includes(address)) {
+            return true;
+          }
+          return false;
+        });
+
         detailedHistory.push({
           height: item.height,
           direction: isIncoming ? 'incoming' : 'outgoing',
