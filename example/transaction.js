@@ -8,14 +8,15 @@ async function main() {
     await client.connect();
 
     const tx = await client.blockchain_transaction_get(
-      '2fdee6050a8713d70ffc823771e14d2cbc75f4902282f167f5ee1cf3f3962d3a',
+      process.argv[2] ||
+        '2fdee6050a8713d70ffc823771e14d2cbc75f4902282f167f5ee1cf3f3962d3a',
       true,
     );
     console.log('Tx: %o', tx);
-
-    await client.close();
   } catch (err) {
     console.log('error', err);
+  } finally {
+    await client.close();
   }
 }
 
