@@ -22,9 +22,9 @@ import {
   BlockHeaders,
   BlockHeader,
   PeersSubscribeResult,
-  ScriptHashDetailedHistory,
   TransactionOutput,
   TransactionDetail,
+  ScriptHashDetailedHistoryItem,
 } from '../types';
 import { ScriptHashHistory } from '../types';
 import * as util from './util';
@@ -356,7 +356,7 @@ export class ElectrumClient {
     scriptHash: string,
     address: string,
     options?: DetailedHistoryOption,
-  ): Promise<ScriptHashDetailedHistory> {
+  ): Promise<Array<ScriptHashDetailedHistoryItem>> {
     const { afterHeight, beforeHeight, retreiveVin } = options || {};
 
     if (afterHeight && beforeHeight && afterHeight > beforeHeight) {
@@ -411,7 +411,7 @@ export class ElectrumClient {
           });
         }
 
-        const fee = (totalInput - totalOutput).toFixed(8);
+        const fee = Number((totalInput - totalOutput).toFixed(8));
 
         return {
           height: item.height,

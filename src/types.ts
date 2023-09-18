@@ -52,18 +52,19 @@ export interface UnconfirmedTransactionOutput
   fee: number;
 }
 
-export type ScriptHashHistoryElement =
+export type ScriptHashHistoryItem =
   | ConfirmedTransactionOutput
   | UnconfirmedTransactionOutput;
 
-export type ScriptHashHistory = Array<ScriptHashHistoryElement>;
+export type ScriptHashHistory = ScriptHashHistoryItem[];
 
-export type ScriptHashDetailedHistoryElement = Transaction<true> & {
+export type ScriptHashDetailedHistoryItem = Transaction<true> & {
   height: number;
   direction?: 'outgoing' | 'incoming';
+  amount?: number;
+  fee?: number;
+  fee_sats?: number;
 };
-
-export type ScriptHashDetailedHistory = Array<ScriptHashDetailedHistoryElement>;
 
 export type ScriptHashMempool = UnconfirmedTransactionOutput[];
 
