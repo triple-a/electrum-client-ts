@@ -23,6 +23,9 @@ const main = async () => {
     const detailedHistory = await client.getScriptHashDetailedHistory(
       scriptHash,
       address,
+      {
+        retreiveVin: true,
+      },
     );
 
     console.log('%j', detailedHistory);

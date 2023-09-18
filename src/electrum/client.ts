@@ -48,6 +48,12 @@ export type ElectrumClientOptions = {
 
 type CallbackMessageQueue<T> = Map<string, util.PromiseResult<T>>;
 
+export type DetailedHistoryOption = {
+  afterHeight?: number;
+  beforeHeight?: number;
+  retreiveVin?: boolean;
+};
+
 export class ElectrumClient {
   private timeLastCall: number = 0;
   private clientName: string = 'electrum-client-js';
@@ -321,10 +327,17 @@ export class ElectrumClient {
     return tx.vout[index];
   }
 
-  async getDetailedTransaction(txHash: string): Promise<TransactionDetail> {
+  async getDetailedTransaction(
+    txHash: string,
+    retreiveVin = false,
+  ): Promise<TransactionDetail> {
     const tx = await this.blockchain_transaction_get(txHash, true);
 
-    await Promise.allSettled(
+    if (!retreiveVin) {
+      return tx;
+    }
+
+    await Promise.all(
       tx.vin.map(async (input) => {
         if (input.txid) {
           const previousOutput = await this.getTransactionOutput(
@@ -341,33 +354,76 @@ export class ElectrumClient {
 
   async getScriptHashDetailedHistory(
     scriptHash: string,
-    address?: string,
+    address: string,
+    options?: DetailedHistoryOption,
   ): Promise<ScriptHashDetailedHistory> {
-    const detailedHistory: ScriptHashDetailedHistory = [];
+    const { afterHeight, beforeHeight, retreiveVin } = options || {};
+
+    if (afterHeight && beforeHeight && afterHeight > beforeHeight) {
+      throw new Error('afterHeight must be less than beforeHeight');
+    }
+
     const history = await this.blockchain_scripthash_getHistory(scriptHash);
-    await Promise.allSettled(
-      history.map(async (item) => {
-        const tx = await this.getDetailedTransaction(item.tx_hash);
-        const isIncoming = tx.vout.some((output) => {
-          const outputAddress = output.scriptPubKey.addresses || [
+
+    // skip transactions before beforeHeight or after afterHeight
+    const filteredHistory = history.filter((item) => {
+      if (afterHeight && item.height <= afterHeight) {
+        return false;
+      }
+      if (beforeHeight && item.height >= beforeHeight) {
+        return false;
+      }
+      return true;
+    });
+
+    return await Promise.all(
+      filteredHistory.map(async (item) => {
+        const tx = await this.getDetailedTransaction(item.tx_hash, retreiveVin);
+
+        let totalInput = 0;
+        let totalOutput = 0;
+        let receivedAmount = 0;
+        let sentAmount = 0;
+        let isIncoming = false;
+        tx.vout.forEach((output) => {
+          const outputAddresses = output.scriptPubKey.addresses || [
             output.scriptPubKey.address,
           ];
           // find address in output
-          if (address && outputAddress.includes(address)) {
-            return true;
+          if (address && outputAddresses.includes(address)) {
+            isIncoming = true;
+            receivedAmount += output.value;
           }
-          return false;
+          totalOutput += output.value;
         });
 
-        detailedHistory.push({
+        if (retreiveVin) {
+          tx.vin.forEach((input) => {
+            const inputAddresses = input.prevout?.scriptPubKey.addresses || [
+              input.prevout?.scriptPubKey.address,
+            ];
+            // find address in input
+            if (address && inputAddresses.includes(address)) {
+              isIncoming = false;
+              sentAmount += input.prevout?.value || 0;
+            }
+            totalInput += input.prevout?.value || 0;
+          });
+        }
+
+        const fee = (totalInput - totalOutput).toFixed(8);
+
+        return {
           height: item.height,
           direction: isIncoming ? 'incoming' : 'outgoing',
           ...tx,
-        });
+          ...(isIncoming ? { amount: receivedAmount } : { amount: sentAmount }),
+          totalOutput,
+          fee,
+          fee_sats: Number(fee) * 1e8,
+        };
       }),
     );
-
-    return detailedHistory;
   }
 
   // ElectrumX API
