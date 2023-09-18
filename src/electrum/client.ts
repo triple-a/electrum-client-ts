@@ -20,11 +20,12 @@ import {
   FeeHistogram,
   MerkleOutput,
   BlockHeaders,
-  BlockHeader,
   PeersSubscribeResult,
   TransactionOutput,
   TransactionDetail,
   ScriptHashDetailedHistoryItem,
+  BlockHeader,
+  BlockHeadersDetail,
 } from '../types';
 import { ScriptHashHistory } from '../types';
 import * as util from './util';
@@ -534,14 +535,18 @@ export class ElectrumClient {
   blockchain_outpoint_unsubscribe(hash: string, out: string) {
     return this.request('blockchain.outpoint.unsubscribe', [hash, out]);
   }
-  blockchain_block_header(height: number, cpHeight = 0) {
-    return this.request<BlockHeader>('blockchain.block.header', [
-      height,
-      cpHeight,
-    ]);
+  blockchain_block_header(
+    height: number,
+    cpHeight = 0,
+  ): Promise<string | BlockHeader> {
+    return this.request('blockchain.block.header', [height, cpHeight]);
   }
-  blockchain_block_headers(startHeight: number, count: number, cpHeight = 0) {
-    return this.request<BlockHeaders>('blockchain.block.headers', [
+  blockchain_block_headers(
+    startHeight: number,
+    count: number,
+    cpHeight = 0,
+  ): Promise<BlockHeaders | BlockHeadersDetail> {
+    return this.request('blockchain.block.headers', [
       startHeight,
       count,
       cpHeight,
@@ -557,7 +562,7 @@ export class ElectrumClient {
     );
   }
   blockchain_relayfee(): Promise<number> {
-    return this.request<number>('blockchain.relayfee', []);
+    return this.request('blockchain.relayfee', []);
   }
   blockchain_transaction_broadcast(rawtx: string): Promise<string> {
     return this.request<string>('blockchain.transaction.broadcast', [rawtx]);

@@ -95,8 +95,11 @@ export interface BlockHeaders {
   count: number;
   hex: string;
   max: number;
-  // root?: string;
-  // branch?: string;
+}
+
+export interface BlockHeadersDetail extends BlockHeaders {
+  root: string;
+  branch: string[];
 }
 
 export type TransactionInput = {
