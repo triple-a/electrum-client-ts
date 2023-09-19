@@ -15,10 +15,15 @@ async function findLowestBlockHeight(afterTimestamp: number): Promise<number> {
   for (let blockHeight = blockHeader.height; blockHeight > 0; blockHeight--) {
     const blockHeaderHex = await client.blockchain_block_header(blockHeight);
 
-    console.log(blockHeaderHex);
+    // console.log(blockHeaderHex);
 
     const blockHeader = bitcoin.Block.fromHex(blockHeaderHex as string);
 
+    console.log(
+      `Block ${blockHeight} ts: ${new Date(
+        blockHeader.timestamp * 1000,
+      ).toISOString()}`,
+    );
     if (blockHeader.timestamp <= afterTimestamp) {
       return blockHeight;
     }
@@ -29,6 +34,12 @@ async function findLowestBlockHeight(afterTimestamp: number): Promise<number> {
 
 (async () => {
   const afterTimestamp = 1695053000;
+
+  console.log(
+    `Finding lowest block height after ${new Date(
+      afterTimestamp * 1000,
+    ).toISOString()}...`,
+  );
 
   const lowestBlockHeight = await findLowestBlockHeight(afterTimestamp);
 

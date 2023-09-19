@@ -58,7 +58,7 @@ export type ScriptHashHistoryItem =
 
 export type ScriptHashHistory = ScriptHashHistoryItem[];
 
-export type ScriptHashDetailedHistoryItem = Transaction<true> & {
+export type AddressDetailedHistoryItem = Transaction<true> & {
   height: number;
   direction?: 'outgoing' | 'incoming';
   amount?: number;

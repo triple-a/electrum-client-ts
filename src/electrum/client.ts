@@ -23,12 +23,13 @@ import {
   PeersSubscribeResult,
   TransactionOutput,
   TransactionDetail,
-  ScriptHashDetailedHistoryItem,
+  AddressDetailedHistoryItem,
   BlockHeader,
   BlockHeadersDetail,
 } from '../types';
 import { ScriptHashHistory } from '../types';
 import * as util from './util';
+import { addressToScriptHash } from '../btc/util';
 
 const keepAliveInterval = 120 * 1000; // 2 minutes
 
@@ -353,12 +354,13 @@ export class ElectrumClient {
     return tx;
   }
 
-  async getScriptHashDetailedHistory(
-    scriptHash: string,
+  async getAddressDetailedHistory(
     address: string,
     options?: DetailedHistoryOption,
-  ): Promise<Array<ScriptHashDetailedHistoryItem>> {
+  ): Promise<Array<AddressDetailedHistoryItem>> {
     const { afterHeight, beforeHeight, retreiveVin } = options || {};
+
+    const scriptHash = addressToScriptHash(address);
 
     if (afterHeight && beforeHeight && afterHeight > beforeHeight) {
       throw new Error('afterHeight must be less than beforeHeight');
