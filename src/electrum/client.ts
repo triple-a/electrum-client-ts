@@ -54,6 +54,7 @@ export type DetailedHistoryOption = {
   afterHeight?: number;
   beforeHeight?: number;
   retreiveVin?: boolean;
+  excludeUnconfirmedTxs?: boolean;
 };
 
 export class ElectrumClient {
@@ -358,7 +359,8 @@ export class ElectrumClient {
     address: string,
     options?: DetailedHistoryOption,
   ): Promise<Array<AddressDetailedHistoryItem>> {
-    const { afterHeight, beforeHeight, retreiveVin } = options || {};
+    const { afterHeight, beforeHeight, retreiveVin, excludeUnconfirmedTxs } =
+      options || {};
 
     const scriptHash = addressToScriptHash(address);
 
@@ -370,6 +372,9 @@ export class ElectrumClient {
 
     // skip transactions before beforeHeight or after afterHeight
     const filteredHistory = history.filter((item) => {
+      if (item.height <= 0) {
+        return excludeUnconfirmedTxs ? false : true;
+      }
       if (afterHeight && item.height <= afterHeight) {
         return false;
       }
