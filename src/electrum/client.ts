@@ -149,30 +149,24 @@ export class ElectrumClient {
     this.persistencePolicy = persistencePolicy;
 
     if (!this.isConnected()) {
-      try {
-        await this.socketClient.initialize();
+      await this.socketClient.initialize();
 
-        // Negotiate protocol version.
-        const version = await this.server_version(
-          this.clientName,
-          this.protocolVersion,
-        );
-        this.logger.info(`Negotiated version: [${version}]`);
+      // Negotiate protocol version.
+      const version = await this.server_version(
+        this.clientName,
+        this.protocolVersion,
+      );
+      this.logger.info(`Negotiated version: [${version}]`);
 
-        // this.onReady();
+      // this.onReady();
 
-        // Get banner.
-        if (this.options?.callBanner) {
-          const banner = await this.server_banner();
+      // Get banner.
+      if (this.options?.callBanner) {
+        const banner = await this.server_banner();
 
-          if (this.options?.showBanner) {
-            this.logger.info(banner);
-          }
+        if (this.options?.showBanner) {
+          this.logger.info(banner);
         }
-      } catch (err) {
-        this.socketClient.emitError(
-          `failed to connect to electrum server: [${err}]`,
-        );
       }
 
       this.keepAlive();
