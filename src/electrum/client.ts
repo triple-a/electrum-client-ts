@@ -351,12 +351,13 @@ export class ElectrumClient {
 
   async getAddressDetailedHistory(
     address: string,
+    network: 'bitcoin' | 'testnet' = 'bitcoin',
     options?: DetailedHistoryOption,
   ): Promise<Array<AddressDetailedHistoryItem>> {
     const { afterHeight, beforeHeight, retreiveVin, excludeUnconfirmedTxs } =
       options || {};
 
-    const scriptHash = addressToScriptHash(address);
+    const scriptHash = addressToScriptHash(address, network);
 
     if (afterHeight && beforeHeight && afterHeight > beforeHeight) {
       throw new Error('afterHeight must be less than beforeHeight');
