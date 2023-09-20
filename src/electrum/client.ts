@@ -383,8 +383,8 @@ export class ElectrumClient {
       filteredHistory.map(async (item) => {
         const tx = await this.getDetailedTransaction(item.tx_hash, retreiveVin);
 
-        let totalInput = 0;
-        let totalOutput = 0;
+        let totalIncoming = 0;
+        let totalOutgoing = 0;
         let receivedAmount = 0;
         let sentAmount = 0;
         let isIncoming = false;
@@ -397,7 +397,7 @@ export class ElectrumClient {
             isIncoming = true;
             receivedAmount += output.value;
           }
-          totalOutput += output.value;
+          totalOutgoing += output.value;
         });
 
         if (retreiveVin) {
@@ -410,18 +410,19 @@ export class ElectrumClient {
               isIncoming = false;
               sentAmount += input.prevout?.value || 0;
             }
-            totalInput += input.prevout?.value || 0;
+            totalIncoming += input.prevout?.value || 0;
           });
         }
 
-        const fee = Number((totalInput - totalOutput).toFixed(8));
+        const fee = Number((totalIncoming - totalOutgoing).toFixed(8));
 
         return {
           height: item.height,
           direction: isIncoming ? 'incoming' : 'outgoing',
           ...tx,
           ...(isIncoming ? { amount: receivedAmount } : { amount: sentAmount }),
-          totalOutput,
+          totalOutgoing,
+          ...(retreiveVin ? { totalIncoming } : {}),
           fee,
           fee_sats: Number(fee) * 1e8,
         };
