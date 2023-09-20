@@ -87,7 +87,7 @@ export class ElectrumClient {
     const logLevel = options?.logLevel || 'info';
 
     this.nextReqId = options?.nextMsgId || (() => String(++this._reqId));
-    this.logger = options?.logger || new DefaultLogger(logLevel);
+    this.logger = new DefaultLogger(options?.logger, logLevel);
 
     this.options = {
       ...options,

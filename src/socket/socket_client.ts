@@ -4,13 +4,15 @@ import tls from 'tls';
 
 export { Protocol, Logger } from '../types';
 
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'none';
+
 export type SocketClientOptions = {
-  logLevel?: 'debug' | 'info' | 'warn' | 'error' | 'none';
+  logLevel?: LogLevel;
   logger?: Logger;
 } & tls.TLSSocketOptions;
 
 export class DefaultLogger implements Logger {
-  public level: string = process.env.SOCKET_LOG_LEVEL || 'info';
+  private level: string = process.env.SOCKET_LOG_LEVEL || 'info';
   private levels: { [key: string]: number } = {
     none: 100,
     error: 40,
@@ -18,14 +20,20 @@ export class DefaultLogger implements Logger {
     info: 10,
     debug: 0,
   };
-  constructor(level?: 'debug' | 'info' | 'warn' | 'error' | 'none') {
+  private logger: Logger;
+  constructor(logger?: Logger, level?: LogLevel) {
     if (level) {
       this.level = level;
     }
+    this.logger = logger || console;
   }
   _log(level: string, ...args: any[]) {
     if (this.levels[level] >= this.levels[this.level]) {
-      console.log(`${new Date().toISOString()} [${level}]`, ...args);
+      if (this.logger === console) {
+        console.log(`${new Date().toISOString()} [${level}]`, ...args);
+      } else {
+        (this.logger as any)[level](...args);
+      }
     }
   }
   error(...args: any[]) {
@@ -50,7 +58,7 @@ export abstract class SocketClient {
 
   constructor(protected options?: SocketClientOptions) {
     this.subscribe = new EventEmitter();
-    this.logger = options?.logger || new DefaultLogger(options?.logLevel);
+    this.logger = new DefaultLogger(options?.logger, options?.logLevel);
   }
 
   abstract initialize(): Promise<void>;
