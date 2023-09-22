@@ -53,6 +53,7 @@ type CallbackMessageQueue<T> = Map<string, util.PromiseResult<T>>;
 export type DetailedHistoryOption = {
   afterHeight?: number;
   beforeHeight?: number;
+  inclusive?: boolean;
   retreiveVin?: boolean;
   excludeUnconfirmedTxs?: boolean;
 };
@@ -354,8 +355,13 @@ export class ElectrumClient {
     network: 'bitcoin' | 'testnet' = 'bitcoin',
     options?: DetailedHistoryOption,
   ): Promise<Array<AddressDetailedHistoryItem>> {
-    const { afterHeight, beforeHeight, retreiveVin, excludeUnconfirmedTxs } =
-      options || {};
+    const {
+      afterHeight,
+      beforeHeight,
+      retreiveVin,
+      excludeUnconfirmedTxs,
+      inclusive,
+    } = options || {};
 
     const scriptHash = addressToScriptHash(address, network);
 
@@ -370,10 +376,18 @@ export class ElectrumClient {
       if (item.height <= 0) {
         return excludeUnconfirmedTxs ? false : true;
       }
-      if (afterHeight && item.height <= afterHeight) {
+      if (
+        afterHeight &&
+        ((!inclusive && item.height <= afterHeight) ||
+          (inclusive && item.height < afterHeight))
+      ) {
         return false;
       }
-      if (beforeHeight && item.height >= beforeHeight) {
+      if (
+        beforeHeight &&
+        ((!inclusive && item.height >= beforeHeight) ||
+          (inclusive && item.height > beforeHeight))
+      ) {
         return false;
       }
       return true;
