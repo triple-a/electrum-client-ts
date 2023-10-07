@@ -435,8 +435,8 @@ export class ElectrumClient {
           direction: isIncoming ? 'incoming' : 'outgoing',
           ...tx,
           ...(isIncoming ? { amount: receivedAmount } : { amount: sentAmount }),
-          totalOutgoing,
-          ...(retreiveVin ? { totalIncoming } : {}),
+          total_outgoing: totalOutgoing,
+          ...(retreiveVin ? { total_incoming: totalIncoming } : {}),
           fee,
           fee_sats: Number(fee) * 1e8,
         };

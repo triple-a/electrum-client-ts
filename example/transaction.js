@@ -1,7 +1,8 @@
 const { ElectrumClient } = require('../dist');
 
 async function main() {
-  const client = new ElectrumClient('electrum.bitaroo.net', 50002, 'ssl');
+  //const client = new ElectrumClient('electrum.bitaroo.net', 50002, 'ssl');
+  const client = new ElectrumClient('electrum-tbtc.triple-a.io', 50001, 'tcp');
 
   try {
     console.log('connecting...');
