@@ -590,11 +590,16 @@ export class ElectrumClient {
   ): Promise<Transaction<B>> {
     const key = `blockchain.transaction.get(${tx_hash},${verbose})`;
     if (!this.cache.has(key)) {
-      const tx = await this.request('blockchain.transaction.get', [
-        tx_hash,
-        verbose,
-      ]);
-      this.cache.set(key, tx);
+      const tx = await this.request<Transaction<B>>(
+        'blockchain.transaction.get',
+        [tx_hash, verbose],
+      );
+      if (verbose) {
+        this.cache.set(key, tx);
+      } else if ((tx as Transaction<true>).confirmations > 0) {
+        // only cache confirmed tx
+        this.cache.set(key, tx);
+      }
     }
 
     return this.cache.get(key) as Transaction<B>;
