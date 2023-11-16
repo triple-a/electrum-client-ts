@@ -317,6 +317,14 @@ export class ElectrumClient {
     }
   }
 
+  async getAddressBalance(
+    address: string,
+    network: 'bitcoin' | 'testnet' = 'bitcoin',
+  ): Promise<BalanceOutput> {
+    const scriptHash = addressToScriptHash(address, network);
+    return await this.blockchain_scripthash_getBalance(scriptHash);
+  }
+
   async getTransactionOutput(
     txHash: string,
     index: number,
