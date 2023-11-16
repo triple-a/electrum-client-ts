@@ -73,7 +73,7 @@ export class ElectrumClient {
   private callbackMessageQueue: CallbackMessageQueue<any>;
   private nextReqId: () => string;
   private logger: Logger;
-  private reconnectWhenClose: boolean = true;
+  private reconnectWhenClose: boolean = false;
 
   public subscribe: EventEmitter;
 
