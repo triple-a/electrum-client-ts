@@ -110,7 +110,7 @@ export class ElectrumClient {
   }
 
   private _createSocketClient() {
-    let socketClient;
+    let socketClient: TCPSocketClient | WebSocketClient;
     switch (this.protocol) {
       case 'tcp':
       case 'tls':
