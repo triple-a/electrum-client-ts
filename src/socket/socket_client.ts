@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
-import { Logger } from '../types';
 import tls from 'tls';
+import { Logger } from '../types';
 
 export { Protocol, Logger } from '../types';
 
@@ -27,24 +27,30 @@ export class DefaultLogger implements Logger {
     }
     this.logger = logger || console;
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _log(level: string, ...args: any[]) {
     if (this.levels[level] >= this.levels[this.level]) {
       if (this.logger === console) {
         console.log(`${new Date().toISOString()} [${level}]`, ...args);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (this.logger as any)[level](...args);
       }
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(...args: any[]) {
     this._log('error', ...args);
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   warn(...args: any[]) {
     this._log('warn', ...args);
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   info(...args: any[]) {
     this._log('info', ...args);
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   debug(...args: any[]) {
     this._log('debug', ...args);
   }
@@ -79,10 +85,12 @@ export abstract class SocketClient {
     return this.connected;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(eventName: string, listener: (...args: any[]) => void) {
     this.subscribe.on(eventName, listener);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emit(eventName: string, ...args: any[]) {
     this.subscribe.emit(eventName, ...args);
   }

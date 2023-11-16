@@ -50,12 +50,10 @@ export class MessageParser {
 
   run(chunk: Buffer | string) {
     this.buffer += chunk;
-    while (true) {
+    let res: RecursiveParserReturnType | undefined;
+    while (res && res.code !== 0) {
       const res = this.recursiveParser(0, this.buffer, this.callback);
       this.buffer = res.buffer;
-      if (res.code === 0) {
-        break;
-      }
     }
   }
 }

@@ -1,6 +1,6 @@
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
-import { SocketClient, SocketClientOptions } from './socket_client';
 import { WsProtocol } from '../types';
+import { SocketClient, SocketClientOptions } from './socket_client';
 
 const sleep = (ms: number) =>
   new Promise((resolve, _) => setTimeout(() => resolve(true), ms));

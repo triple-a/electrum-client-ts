@@ -1,35 +1,35 @@
 import EventEmitter from 'events';
+import { addressToScriptHash } from '../btc/util';
 import {
+  DefaultLogger,
+  Logger,
   Protocol,
   SocketClient,
-  Logger,
   SocketClientOptions,
-  DefaultLogger,
 } from '../socket/socket_client';
 import { TCPSocketClient } from '../socket/socket_client_tcp';
 import { WebSocketClient } from '../socket/socket_client_ws';
 import {
-  ScriptHashMempool,
+  AddressDetailedHistoryItem,
   BalanceOutput,
+  BlockHeader,
+  BlockHeaders,
+  BlockHeadersDetail,
+  FeeHistogram,
   HeadersSubscribeOutput,
   JsonRpcResponse,
+  MerkleOutput,
+  PeersSubscribeResult,
+  ScriptHashMempool,
   ScriptHashStatus,
+  Transaction,
+  TransactionDetail,
+  TransactionOutput,
   UnspentOutput,
   VersionOutput,
-  Transaction,
-  FeeHistogram,
-  MerkleOutput,
-  BlockHeaders,
-  PeersSubscribeResult,
-  TransactionOutput,
-  TransactionDetail,
-  AddressDetailedHistoryItem,
-  BlockHeader,
-  BlockHeadersDetail,
 } from '../types';
 import { ScriptHashHistory } from '../types';
 import * as util from './util';
-import { addressToScriptHash } from '../btc/util';
 
 const keepAliveInterval = 120 * 1000; // 2 minutes
 
@@ -69,6 +69,7 @@ export class ElectrumClient {
   private socketClient: SocketClient;
 
   private _reqId: number = 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private callbackMessageQueue: CallbackMessageQueue<any>;
   private nextReqId: () => string;
   private logger: Logger;

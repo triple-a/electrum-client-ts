@@ -1,7 +1,7 @@
 import { Socket } from 'net';
 import tls from 'tls';
-import { SocketClient, SocketClientOptions } from './socket_client';
 import { TCPProtocol } from '../types';
+import { SocketClient, SocketClientOptions } from './socket_client';
 import { MessageParser } from './util';
 
 const TIMEOUT = 10000;
@@ -32,6 +32,7 @@ export class TCPSocketClient extends SocketClient {
       case 'tls':
       case 'ssl':
         this.client = new tls.TLSSocket(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           undefined as any,
           options as tls.TLSSocketOptions,
         );
