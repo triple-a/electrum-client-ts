@@ -1,7 +1,21 @@
 import { ElectrumClient } from '../src';
+import { Protocol } from '../src/types';
+
+const networks: { [key: string]: [string, number, Protocol] } = {
+  bitcoin: ['electrum.bitaroo.net', 50002, 'ssl'],
+  testnet: ['electrum-tbtc.triple-a.io', 50001, 'tcp'],
+};
 
 const main = async () => {
-  const client = new ElectrumClient('electrum.bitaroo.net', 50002, 'ssl', {
+  const address = process.argv[2] || '1Ep2wRnRj2tPn77czVzk5XRLau9zt8Syt';
+
+  let network = 'bitcoin';
+  if (address.startsWith('tb')) {
+    network = 'testnet';
+  }
+
+  const p = networks[network];
+  const client = new ElectrumClient(p[0], p[1], p[2], {
     showBanner: false,
     logLevel: 'none',
   });
@@ -9,14 +23,9 @@ const main = async () => {
   try {
     await client.connect();
 
-    const address =
-      process.argv[2] || //'1LpErkYJUeGkTiJ68HEfg6p4T1rpYXRNLX';
-      //'1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
-      '1Ep2wRnRj2tPn77czVzk5XRLau9zt8Syt';
-
     const detailedHistory = await client.getAddressDetailedHistory(
       address,
-      'bitcoin',
+      network as 'bitcoin' | 'testnet',
       {
         retreiveVin: true,
       },

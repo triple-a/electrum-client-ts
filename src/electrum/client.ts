@@ -336,7 +336,7 @@ export class ElectrumClient {
 
   async getDetailedTransaction(
     txHash: string,
-    retreiveVin = false,
+    retreiveVin = true,
   ): Promise<TransactionDetail> {
     const tx = await this.blockchain_transaction_get(txHash, true);
 

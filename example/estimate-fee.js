@@ -1,7 +1,17 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ElectrumClient } = require('../dist');
 
+const networks = {
+  bitcoin: ['electrum.bitaroo.net', 50002, 'ssl'],
+  testnet: ['electrum-tbtc.triple-a.io', 50001, 'tcp'],
+};
+
 async function main() {
-  const client = new ElectrumClient('fortress.qtornado.com', 50002, 'ssl');
+  let network = process.argv[2] || 'bitcoin';
+
+  const p = networks[network];
+
+  const client = new ElectrumClient(p[0], p[1], p[2]);
 
   try {
     await client.connect();
