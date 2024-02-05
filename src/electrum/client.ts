@@ -64,7 +64,6 @@ export class ElectrumClient {
   private protocolVersion: string = '1.4.2';
   private persistencePolicy?: PersistencePolicy;
   private timeout: NodeJS.Timeout | number = 0;
-  private cache: Map<string, unknown> = new Map();
 
   private socketClient: SocketClient;
 
@@ -177,8 +176,6 @@ export class ElectrumClient {
 
   onSocketClose() {
     this.logger.debug('socket.close');
-
-    this.cache.clear();
 
     this.callbackMessageQueue.forEach((_v, key, map) => {
       this.socketClient.emitError('close connection');
@@ -462,14 +459,10 @@ export class ElectrumClient {
     clientName: string,
     protocolVersion: string,
   ): Promise<VersionOutput> {
-    if (this.cache.has('server.version')) {
-      return this.cache.get('server.version') as VersionOutput;
-    }
     const res = await this.request<VersionOutput>('server.version', [
       clientName,
       protocolVersion,
     ]);
-    this.cache.set('server.version', res);
     return res;
   }
   async server_banner(): Promise<string> {
@@ -597,21 +590,10 @@ export class ElectrumClient {
     tx_hash: string,
     verbose: B = false as B,
   ): Promise<Transaction<B>> {
-    const key = `blockchain.transaction.get(${tx_hash},${verbose})`;
-    if (!this.cache.has(key)) {
-      const tx = await this.request<Transaction<B>>(
-        'blockchain.transaction.get',
-        [tx_hash, verbose],
-      );
-      if (verbose) {
-        this.cache.set(key, tx);
-      } else if ((tx as Transaction<true>).confirmations > 0) {
-        // only cache confirmed tx
-        this.cache.set(key, tx);
-      }
-    }
-
-    return this.cache.get(key) as Transaction<B>;
+    return await this.request<Transaction<B>>('blockchain.transaction.get', [
+      tx_hash,
+      verbose,
+    ]);
   }
   blockchain_transaction_getKeys(tx_hash: string) {
     return this.request('blockchain.transaction.get_keys', [tx_hash]);
